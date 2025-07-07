@@ -26,12 +26,3 @@ class Scheduler:
             self.__autorunThread.stop()
         elif not self.__autorunThread.is_alive() and isEnabled:
             self.__autorunThread.start()
-
-
-sched = Scheduler(1)
-
-sched.addTask(round(time()) + 5, lambda expireTime: print(expireTime))
-sched.addTask(round(time()) + 5, lambda expireTime: print(expireTime))
-sched.addTask(round(time()) + 5, lambda expireTime: print(expireTime))
-
-sched.setAutorunEnabled(True)
