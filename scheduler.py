@@ -7,7 +7,7 @@ class Scheduler:
     def __init__(self):
         self.__queue = PriorityQueue()
 
-    def addTask(self, runTime: int, handler: Callable, args: tuple):
+    def addTask(self, runTime: int, handler: Callable, args=tuple()):
         self.__queue.put((runTime, handler, args))
 
     def runExpired(self):
