@@ -15,10 +15,10 @@ async def onStartCommand(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def onMessageReceived(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=update.message.text)
 
-
-application = ApplicationBuilder().token(TOKEN).build()
-start_handler = CommandHandler('start', onStartCommand)
-message_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), onMessageReceived)
-application.add_handler(start_handler)
-application.add_handler(message_handler)
-application.run_polling()
+if __name__ == '__main__':
+    application = ApplicationBuilder().token(TOKEN).build()
+    start_handler = CommandHandler('start', onStartCommand)
+    message_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), onMessageReceived)
+    application.add_handler(start_handler)
+    application.add_handler(message_handler)
+    application.run_polling()

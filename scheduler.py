@@ -1,7 +1,6 @@
 from queue import PriorityQueue
 from time import time
 from typing import Callable
-
 from CycledThread import CycledThread
 
 
