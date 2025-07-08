@@ -19,7 +19,7 @@ class Scheduler:
         now = round(time())
         while not self.__queue.empty() and self.__queue.queue[0][0] <= now:
             item = self.__queue.get()
-            item[2](*item[3], expireTime=item[0])
+            item[2](*item[3])
 
     def setAutorunEnabled(self, isEnabled):
         if self.__autorunThread.is_alive() and not isEnabled:
