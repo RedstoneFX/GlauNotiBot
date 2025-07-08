@@ -46,7 +46,6 @@ class UserManager:
             with open(filename, mode="r", encoding="utf-8") as f:
                 data = json.load(f)
                 for user in data:
-                    UserManager.users[user["chatID"]] = User(user["chatID"], user["name"], user["isAdmin"])
-            UserManager.filename = filename
+                    UserManager.users[user["chatID"]] = User(user["chatID"], user["name"], user["isAdmin"], user["state"], user["extra"])
         except FileNotFoundError:
             pass
