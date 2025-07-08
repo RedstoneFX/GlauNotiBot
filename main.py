@@ -17,8 +17,7 @@ if __name__ == '__main__':
     UserManager.filename = "users.json"
     UserManager.load()
     application = ApplicationBuilder().token(TOKEN).build()
-    NotificationManager.setBot(application.bot)
-    NotificationManager.schedule.setAutorunEnabled(True)
+    application.job_queue.run_repeating(NotificationManager.sendExpiredNotifications, 5)
     application.add_handler(onStartCommandHandler())
     application.add_handler(onButtonClickedHandler())
     application.add_handler(onMessageReceivedHandler())
