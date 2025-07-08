@@ -21,7 +21,7 @@ class onStartCommandHandler(CommandHandler):
 
     @staticmethod
     async def onStart(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        if UserManager.getUserFromChat(update.effective_chat).isAdmin:
+        if UserManager.getUser(update.effective_chat).isAdmin:
             reply_markup = InlineKeyboardMarkup(adminKeyboard)
         else:
             reply_markup = InlineKeyboardMarkup(userKeyboard)
