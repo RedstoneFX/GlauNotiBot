@@ -32,44 +32,49 @@ class onButtonClickedHandler(CallbackQueryHandler):
                 if query.data == "+day":
                     interval[0] += 1
                 elif query.data == "-day":
-                    if interval[0] > 0:
-                        interval[0] -= 1
+                    interval[0] -= 1
                 elif query.data == "+7days":
                     interval[0] += 7
                 elif query.data == "-7days":
-                    if interval[0] >= 7:
-                        interval[0] -= 7
+                    interval[0] -= 7
 
                 elif query.data == "+hour":
                     interval[1] += 1
                 elif query.data == "-hour":
-                    if interval[1] > 1:
-                        interval[1] -= 1
+                    interval[1] -= 1
                 elif query.data == "+6hours":
                     interval[1] += 6
                 elif query.data == "-6hours":
-                    if interval[1] >= 6:
-                        interval[1] -= 6
+                    interval[1] -= 6
 
                 elif query.data == "+10mins":
                     interval[2] += 10
                 elif query.data == "-10mins":
-                    if interval[2] >= 10:
-                        interval[2] -= 10
+                    interval[2] -= 10
+
                 elif query.data == "+30mins":
                     interval[2] += 30
                 elif query.data == "-30mins":
-                    if interval[2] >= 30:
-                        interval[2] -= 30
+                    interval[2] -= 30
 
-                if interval == [0, 0, 0]:
-                    interval[2] = 10
-                if interval[2] >= 60:
+                if interval[2] >= 60:  # добавить часы, если минут больше 60
                     interval[1] += interval[2] // 60
                     interval[2] %= 60
-                if interval[1] >= 24:
+                elif interval[2] < 0:  # Взять часы, если минут меньше 0
+                    interval[1] -= abs(interval[2]) // 60 + 1
+                    interval[2] += abs(interval[2]) // 60 * 60 + 60
+
+                if interval[1] >= 24:  # Добавить дни, если часов больше 24
                     interval[0] += interval[1] // 24
                     interval[1] %= 24
+                elif interval[1] < 0:  # Взять дни, если часов меньше 0
+                    interval[0] -= abs(interval[1]) // 24 + 1
+                    interval[1] += abs(interval[1]) // 24 * 24 + 24
+
+                if interval[0] < 0:
+                    interval[0] = 0
+                    interval[1] = 0
+                    interval[2] = 10
 
                 await update.effective_message.edit_text(
                     f"Текущий интервал: раз в {interval[0]} дней {interval[1]} часов и {interval[2]} минут",
