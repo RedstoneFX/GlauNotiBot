@@ -1,7 +1,11 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+import datetime
+
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Chat
 from telegram.ext import ContextTypes, CallbackQueryHandler
 
-from chat.UserManager import UserManager
+from chat.UserManager import UserManager, User
+
+months = "0 Январь Февраль Март Апрель Май Июнь Июль Август Сентябрь Октябрь Ноябрь Декарь".split()
 
 
 class onButtonClickedHandler(CallbackQueryHandler):
@@ -15,8 +19,14 @@ class onButtonClickedHandler(CallbackQueryHandler):
         user = UserManager.getUser(update.effective_chat)
         if user.isAdmin:
             if user.state == "add_notif":
-                askNotificationInfo(update.effective_chat, int(query.data))
-            if query.data == "get_users":
+                user.extra["target_user"] = int(query.data)
+                user.state = "add_notif_year"
+                await onButtonClickedHandler.askYear(update.effective_chat, user)
+            elif user.state == "add_notif_year":
+                user.extra["year"] = int(query.data)
+                user.state = "add_notif_month"
+                await onButtonClickedHandler.askMonth(update.effective_chat, user)
+            elif query.data == "get_users":
                 await onButtonClickedHandler.sendUserList(update.effective_chat)
             elif query.data == "add_notification":
                 await onButtonClickedHandler.sendAddNotifMenu(update.effective_chat)
@@ -37,8 +47,22 @@ class onButtonClickedHandler(CallbackQueryHandler):
             UserManager.getUser(chat).state = "add_notif"
 
     @staticmethod
-    def askNotificationInfo(effective_chat, targetID):
-        pass
+    async def askYear(chat: Chat, user: User):
+        currentYear = datetime.datetime.now().year
+        nearYears = [[InlineKeyboardButton(str(currentYear), callback_data=str(currentYear))],
+                     [InlineKeyboardButton(str(currentYear + 1), callback_data=str(currentYear + 1))]]
+        await chat.send_message("Теперь нужно указать дату начала отправки уведомлений. В каком году начать?",
+                                reply_markup=InlineKeyboardMarkup(nearYears))
+
+    @staticmethod
+    async def askMonth(chat: Chat, user: User):
+        currentDate = datetime.datetime.now()
+        nearMonths = []
+        minMonth = 1 if currentDate.year != user.extra["year"] else currentDate.month
+        for i in range(minMonth, 13):
+            nearMonths.append([InlineKeyboardButton(f"{months[i]} {user.extra['year']} года", callback_data=str(i))])
+        await chat.send_message("Теперь нужно указать дату начала отправки уведомлений. В каком году начать?",
+                                reply_markup=InlineKeyboardMarkup(nearMonths))
 
     @staticmethod
     async def sendUserList(chat):
