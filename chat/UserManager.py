@@ -5,11 +5,12 @@ from CycledThread import CycledThread
 
 
 class User:
-    def __init__(self, chatID: int, username: str, isAdmin=False, state="idle"):
+    def __init__(self, chatID: int, username: str, isAdmin=False, state="idle", extra=dict()):
         self.name = username
         self.chatID = chatID
         self.isAdmin = isAdmin
         self.state = state
+        self.extra = extra
 
     def toDict(self):
         o = dict()
@@ -17,6 +18,7 @@ class User:
         o["chatID"] = self.chatID
         o["isAdmin"] = self.isAdmin
         o["state"] = self.state
+        o["extra"] = self.extra
         return o
 
 
