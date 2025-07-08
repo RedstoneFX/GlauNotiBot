@@ -13,6 +13,7 @@ class Scheduler:
     def addTask(self, runTime: int, handler: Callable, args=tuple()):
         self.__queue.put((runTime, self.__queueInserted, handler, args))
         self.__queueInserted += 1
+        return self.__queueInserted - 1
 
     def runExpired(self):
         now = round(time())
