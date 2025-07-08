@@ -1,3 +1,6 @@
+from datetime import datetime, date
+from calendar import monthrange
+
 from telegram import Update
 from telegram.ext import ContextTypes, CallbackQueryHandler
 
@@ -24,10 +27,38 @@ class onButtonClickedHandler(CallbackQueryHandler):
                                                      "этом?")
             user.state = "setting_notif_msg"
 
+        elif user.state == "setting_date":
+            now = user.extra["date"]
+            if query.data == "month_left":
+                now[1] -= 1
+                if now[1] <= 0:
+                    now[1] = 12
+                    now[0] -= 1
+                if monthrange(now[0], now[1])[1] < now[2]:
+                    now[2] = monthrange(now[0], now[1])[1]
+            elif query.data == "month_right":
+                now[1] += 1
+                if now[1] > 12:
+                    now[1] = 1
+                    now[0] += 1
+                if monthrange(now[0], now[1])[1] < now[2]:
+                    now[2] = monthrange(now[0], now[1])[1]
+            elif query.data.isdigit():
+                n = int(query.data)
+                if 0 < n <= monthrange(now[0], now[1])[1]:
+                    now[2] = n
+            if query.data != "submit":
+                await update.effective_message.edit_text(
+                    f"Когда следует начать присылать уведомления?\n{date(now[0], now[1], now[2])}",
+                    reply_markup=generateMonthButtons(now[0], now[1]))
+            else:
+                await update.effective_message.edit_text("Окей, теперь нужно указать время суток...")
         elif user.state == "setting_interval":
             if query.data == "submit":
-                await update.effective_message.edit_text("Когда следует начать присылать уведомления? ",
-                                                         reply_markup=generateMonthButtons(2025, 7))
+                now = datetime.now()
+                user.extra["date"] = [now.year, now.month, now.day, now.hour, now.minute]
+                await update.effective_message.edit_text(f"Когда следует начать присылать уведомления?\n{now.date()}",
+                                                         reply_markup=generateMonthButtons(now.year, now.month))
                 user.state = "setting_date"
             else:
                 interval = user.extra["interval"]

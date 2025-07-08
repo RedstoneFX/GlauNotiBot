@@ -14,7 +14,7 @@ def generateMonthButtons(year, month):
             InlineKeyboardButton("<-", callback_data="month_left"),
             InlineKeyboardButton(months[month], callback_data="-"),
             InlineKeyboardButton("->", callback_data="month_right")],
-        [], [], [], [], []
+        [], [], [], [], [], []
     ]
     for i in range(weekDay):
         buttons[1].append(InlineKeyboardButton("-", callback_data="-"))
@@ -22,9 +22,9 @@ def generateMonthButtons(year, month):
         humanIndex = str(dayIndex + 1)
         lineIndex = (weekDay + dayIndex) // 7 + 1
         buttons[lineIndex].append((InlineKeyboardButton(humanIndex, callback_data=humanIndex)))
-    if len(buttons[-1]) == 0:
-        buttons.pop()
     while len(buttons[-1]) < 7:
         buttons[-1].append(InlineKeyboardButton("-", callback_data="-"))
+    while len(buttons[-2]) < 7:
+        buttons[-2].append(InlineKeyboardButton("-", callback_data="-"))
     buttons.append([InlineKeyboardButton("Подтвердить", callback_data="submit")])
     return InlineKeyboardMarkup(buttons)
