@@ -27,7 +27,7 @@ class onButtonClickedHandler(CallbackQueryHandler):
                                                      "этом?")
             user.state = "setting_notif_msg"
         elif user.state == "setting_time":
-            now = user.extra["date"]
+            now = user.extra["datetime"]
             if query.data == "+6hours":
                 now[3] += 6
             elif query.data == "+hour":
@@ -58,13 +58,13 @@ class onButtonClickedHandler(CallbackQueryHandler):
                     now[4] %= 60
                 now[3] %= 24
                 time = str(now[3]).rjust(2, "0") + ":" + str(now[4]).rjust(2, "0")
-                await update.effective_message.edit_text(f"В какое время суток прислать первое уведомление?\n{time}",
+                await update.effective_message.edit_text(f"В какое время суток прислать первое уведомление?\n{time}?",
                                                          reply_markup=daytimeButtonsMarkup)
             else:
                 await update.effective_message.edit_text("Собрали все данные. Теперь можно запускать уведомления.")
 
         elif user.state == "setting_date":
-            now = user.extra["date"]
+            now = user.extra["datetime"]
             if query.data == "month_left":
                 now[1] -= 1
                 if now[1] <= 0:
@@ -85,18 +85,18 @@ class onButtonClickedHandler(CallbackQueryHandler):
                     now[2] = n
             if query.data != "submit":
                 await update.effective_message.edit_text(
-                    f"Когда следует начать присылать уведомления?\n{date(now[0], now[1], now[2])}",
+                    f"Когда следует начать присылать уведомления?\n{date(now[0], now[1], now[2])}?",
                     reply_markup=generateMonthButtons(now[0], now[1]))
             else:
                 time = str(now[3]).rjust(2, "0") + ":" + str(now[4]).rjust(2, "0")
-                await update.effective_message.edit_text(f"В какое время суток прислать первое уведомление?\n{time}",
+                await update.effective_message.edit_text(f"В какое время суток прислать первое уведомление?\n{time}?",
                                                          reply_markup=daytimeButtonsMarkup)
                 user.state = "setting_time"
         elif user.state == "setting_interval":
             if query.data == "submit":
                 now = datetime.now()
-                user.extra["date"] = [now.year, now.month, now.day, now.hour, now.minute]
-                await update.effective_message.edit_text(f"Когда следует начать присылать уведомления?\n{now.date()}",
+                user.extra["datetime"] = [now.year, now.month, now.day, now.hour, now.minute]
+                await update.effective_message.edit_text(f"Когда следует начать присылать уведомления?\n{now.date()}?",
                                                          reply_markup=generateMonthButtons(now.year, now.month))
                 user.state = "setting_date"
             else:
@@ -150,7 +150,8 @@ class onButtonClickedHandler(CallbackQueryHandler):
                     interval[2] = 10
 
                 await update.effective_message.edit_text(
-                    f"Текущий интервал: раз в {interval[0]} дней {interval[1]} часов и {interval[2]} минут",
+                    f"Как часто мне следует напоминать вам об этом?\n"
+                    f"Раз в {interval[0]} дней {interval[1]} часов и {interval[2]} минут?",
                     reply_markup=intervalButtonsMarkup)
 
     @staticmethod
