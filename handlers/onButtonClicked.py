@@ -1,6 +1,8 @@
 from telegram import Update
 from telegram.ext import ContextTypes, CallbackQueryHandler
 
+from chat.UserManager import UserManager
+
 
 class onButtonClickedHandler(CallbackQueryHandler):
     def __init__(self):
@@ -10,5 +12,8 @@ class onButtonClickedHandler(CallbackQueryHandler):
     async def onButtonClicked(update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
         await query.answer()
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Selected option: {query.data}")
-        # await query.edit_message_text(text=f"Selected option: {query.data}")
+        if query.data == "get_users":
+            msg = "Пользователи:"
+            for user in UserManager.users.values():
+                msg += f"\n@{user.name} [{user.chatID}]" + (" (admin)" if user.isAdmin else "")
+            await update.effective_chat.send_message(msg)
