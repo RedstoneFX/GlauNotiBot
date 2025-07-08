@@ -3,6 +3,7 @@ from telegram.ext import ContextTypes, CallbackQueryHandler
 
 from chat.UserManager import UserManager
 from misc.buttons import intervalButtonsMarkup
+from misc.generateMonthButtons import generateMonthButtons
 
 
 class onButtonClickedHandler(CallbackQueryHandler):
@@ -25,7 +26,9 @@ class onButtonClickedHandler(CallbackQueryHandler):
 
         elif user.state == "setting_interval":
             if query.data == "submit":
-                await update.effective_message.edit_text("Хорошо. Теперь нужно ждать, пока реализуют запрос даты начала.")
+                await update.effective_message.edit_text("Когда следует начать присылать уведомления? ",
+                                                         reply_markup=generateMonthButtons(2025, 7))
+                user.state = "setting_date"
             else:
                 interval = user.extra["interval"]
 

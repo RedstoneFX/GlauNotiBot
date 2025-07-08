@@ -14,10 +14,9 @@ class onMessageReceivedHandler(MessageHandler):
         user = UserManager.getUser(update.effective_chat)
         if user.state == "setting_notif_msg":
             user.extra["msg"] = update.message.text
-            await update.effective_chat.send_message("Как часто мне следует напоминать вам об этом?")
             user.state = "setting_interval"
-            user.extra["interval"] = [0, 12, 0]
+            user.extra["interval"] = [0, 1, 0]
             interval = user.extra["interval"]
             await update.effective_chat.send_message(
-                f"Текущий интервал: раз в {interval[0]} дней {interval[1]} часов и {interval[2]} минут",
+                f"Как часто мне следует напоминать вам об этом?",
                 reply_markup=intervalButtonsMarkup)
