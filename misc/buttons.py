@@ -52,5 +52,10 @@ daytimeButtons = [
     ]
 ]
 
+notificationRead = [
+    [InlineKeyboardButton("Принято", callback_data="accepted")]
+]
+
+notificationReadMarkup = InlineKeyboardMarkup(notificationRead)
 daytimeButtonsMarkup = InlineKeyboardMarkup(daytimeButtons)
 intervalButtonsMarkup = InlineKeyboardMarkup(intervalButtons)
