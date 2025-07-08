@@ -20,17 +20,19 @@ class User:
 
 class UserManager:
     users = dict()
+    filename = "defaultUsers.json"
 
     @staticmethod
     def getUserFromChat(chat: Chat):
         if chat.id not in UserManager.users:
+            UserManager.load(UserManager.filename)
             UserManager.users[chat.id] = User(chat.id, chat.username)
-            UserManager.save()
+            UserManager.save(UserManager.filename)
         return UserManager.users[chat.id]
 
     @staticmethod
-    def save():
-        with open("users.json", mode="w", encoding="utf-8") as f:
+    def save(filename: str):
+        with open(filename, mode="w", encoding="utf-8") as f:
             data = list(map(User.toDict, UserManager.users.values()))
             json.dump(data, f)
 
@@ -41,5 +43,6 @@ class UserManager:
                 data = json.load(f)
                 for user in data:
                     UserManager.users[user["chatID"]] = User(user["chatID"], user["name"], user["isAdmin"])
+            UserManager.filename = filename
         except FileNotFoundError:
             pass
