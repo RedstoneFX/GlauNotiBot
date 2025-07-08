@@ -18,6 +18,7 @@ if __name__ == '__main__':
     UserManager.load()
     application = ApplicationBuilder().token(TOKEN).build()
     application.job_queue.run_repeating(NotificationManager.sendExpiredNotifications, 5)
+    application.job_queue.run_repeating(NotificationManager.notifyAdmins, 30*60)
     application.add_handler(onStartCommandHandler())
     application.add_handler(onButtonClickedHandler())
     application.add_handler(onMessageReceivedHandler())
