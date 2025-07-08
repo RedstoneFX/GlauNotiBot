@@ -10,7 +10,7 @@ class Scheduler:
         self.__autorunThread = CycledThread(autorunInterval, Scheduler.runExpired, (self,))
         self.__queue = PriorityQueue()
 
-    def addTask(self, runTime: int, handler: Callable, args=tuple()):
+    def addTask(self, runTime: float, handler: Callable, args=tuple()):
         self.__queue.put((runTime, self.__queueInserted, handler, args))
         self.__queueInserted += 1
         return self.__queueInserted - 1

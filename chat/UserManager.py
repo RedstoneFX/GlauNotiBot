@@ -36,6 +36,8 @@ class UserManager:
 
     @staticmethod
     def save():
+        if UserManager.filename is None:
+            return
         with open(UserManager.filename, mode="w", encoding="utf-8") as f:
             data = list(map(User.toDict, UserManager.users.values()))
             f.write(json.dumps(data, indent=4, ensure_ascii=False))
@@ -46,7 +48,8 @@ class UserManager:
             with open(UserManager.filename, mode="r", encoding="utf-8") as f:
                 data = json.load(f)
                 for user in data:
-                    UserManager.users[user["chatID"]] = User(user["chatID"], user["name"], user["isAdmin"], user["state"], user["extra"])
+                    UserManager.users[user["chatID"]] = User(user["chatID"], user["name"], user["isAdmin"],
+                                                             user["state"], user["extra"])
         except FileNotFoundError:
             pass
 

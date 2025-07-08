@@ -1,11 +1,13 @@
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from calendar import monthrange
 
 from telegram import Update
 from telegram.ext import ContextTypes, CallbackQueryHandler
 
+from chat.NotificationManager import NotificationManager
 from chat.UserManager import UserManager
-from misc.buttons import intervalButtonsMarkup, daytimeButtons, daytimeButtonsMarkup
+from handlers.onStartCommand import onStartCommandHandler
+from misc.buttons import intervalButtonsMarkup, daytimeButtonsMarkup
 from misc.generateMonthButtons import generateMonthButtons
 
 
@@ -61,7 +63,16 @@ class onButtonClickedHandler(CallbackQueryHandler):
                 await update.effective_message.edit_text(f"В какое время суток прислать первое уведомление?\n{time}?",
                                                          reply_markup=daytimeButtonsMarkup)
             else:
-                await update.effective_message.edit_text("Собрали все данные. Теперь можно запускать уведомления.")
+                rawInterval = user.extra["interval"]
+                NotificationManager.addNotification(
+                    datetime(*user.extra["datetime"]).timestamp(),
+                    update.effective_chat.id,
+                    user.extra["msg"],
+                    timedelta(days=rawInterval[0], hours=rawInterval[1], minutes=rawInterval[2]).total_seconds()
+                )
+                await update.effective_message.edit_text("Отлично, уведомление создано! Вызовите команду /start, "
+                                                         "чтобы добавить еще уведомление.")
+                user.state = "idle"
 
         elif user.state == "setting_date":
             now = user.extra["datetime"]
@@ -144,7 +155,7 @@ class onButtonClickedHandler(CallbackQueryHandler):
                     interval[0] -= abs(interval[1]) // 24 + 1
                     interval[1] += abs(interval[1]) // 24 * 24 + 24
 
-                if interval[0] < 0:
+                if interval[0] < 0 or interval == [0, 0, 0]:
                     interval[0] = 0
                     interval[1] = 0
                     interval[2] = 10
