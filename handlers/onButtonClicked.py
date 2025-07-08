@@ -13,11 +13,10 @@ class onButtonClickedHandler(CallbackQueryHandler):
         query = update.callback_query
         await query.answer()
         user = UserManager.getUser(update.effective_chat)
-        if user.isAdmin:
-            if query.data == "get_users":
-                await onButtonClickedHandler.sendUserList(update.effective_chat)
-            elif query.data == "add_notification":
-                await onButtonClickedHandler.sendAddNotifMenu(update.effective_chat)
+        if query.data == "get_users":
+            await onButtonClickedHandler.sendUserList(update.effective_chat)
+        elif query.data == "add_notification":
+            await onButtonClickedHandler.sendAddNotifMenu(update.effective_chat)
 
     @staticmethod
     async def sendAddNotifMenu(chat):
