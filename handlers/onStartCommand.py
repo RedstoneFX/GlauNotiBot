@@ -3,6 +3,17 @@ from telegram.ext import ContextTypes, CommandHandler
 
 from chat.UserManager import UserManager
 
+adminKeyboard = [
+    [InlineKeyboardButton("Назначить уведомления", callback_data='bind_notification')],
+    [InlineKeyboardButton("Получить список всех уведомлений", callback_data='get_notifications')],
+    [InlineKeyboardButton("Получить список клиентов", callback_data='get_users')],
+    [InlineKeyboardButton("Узнать информацию", callback_data='get_notifications')]
+]
+
+userKeyboard = [
+    [InlineKeyboardButton("Узнать информацию", callback_data='get_notifications')]
+]
+
 
 class onStartCommandHandler(CommandHandler):
     def __init__(self):
@@ -10,11 +21,8 @@ class onStartCommandHandler(CommandHandler):
 
     @staticmethod
     async def onStart(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        keyboard = [
-            [InlineKeyboardButton("Получить список пользователей", callback_data='get_users')],
-            [InlineKeyboardButton("Получить список всех уведомлений", callback_data='get_notifications')]
-        ]
-
-        UserManager.getUserFromChat(update.effective_chat)
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await update.message.reply_text('Отладка:', reply_markup=reply_markup)
+        if UserManager.getUserFromChat(update.effective_chat).isAdmin:
+            reply_markup = InlineKeyboardMarkup(adminKeyboard)
+        else:
+            reply_markup = InlineKeyboardMarkup(userKeyboard)
+        await update.message.reply_text("Здравствуйте, пользователь! Что вы желаете сделать?", reply_markup=reply_markup)

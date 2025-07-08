@@ -23,7 +23,7 @@ class UserManager:
     filename = "defaultUsers.json"
 
     @staticmethod
-    def getUserFromChat(chat: Chat):
+    def getUserFromChat(chat: Chat) -> User:
         if chat.id not in UserManager.users:
             UserManager.load(UserManager.filename)
             UserManager.users[chat.id] = User(chat.id, chat.username)
