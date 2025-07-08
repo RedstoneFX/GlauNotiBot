@@ -1,7 +1,7 @@
 from telegram import Chat
 import json
 
-from CycledThread import CycledThread
+import atexit
 
 
 class User:
@@ -23,29 +23,32 @@ class User:
 
 
 class UserManager:
+    filename = None
     users = dict()
-    filename = "defaultUsers.json"
 
     @staticmethod
     def getUser(chat: Chat) -> User:
         if chat.id not in UserManager.users:
-            UserManager.load(UserManager.filename)
+            UserManager.load()
             UserManager.users[chat.id] = User(chat.id, chat.username)
-            UserManager.save(UserManager.filename)
+            UserManager.save()
         return UserManager.users[chat.id]
 
     @staticmethod
-    def save(filename: str):
-        with open(filename, mode="w", encoding="utf-8") as f:
+    def save():
+        with open(UserManager.filename, mode="w", encoding="utf-8") as f:
             data = list(map(User.toDict, UserManager.users.values()))
-            json.dump(data, f)
+            f.write(json.dumps(data, indent=4, ensure_ascii=False))
 
     @staticmethod
-    def load(filename: str):
+    def load():
         try:
-            with open(filename, mode="r", encoding="utf-8") as f:
+            with open(UserManager.filename, mode="r", encoding="utf-8") as f:
                 data = json.load(f)
                 for user in data:
                     UserManager.users[user["chatID"]] = User(user["chatID"], user["name"], user["isAdmin"], user["state"], user["extra"])
         except FileNotFoundError:
             pass
+
+
+atexit.register(UserManager.save)

@@ -13,7 +13,8 @@ logging.basicConfig(format='[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s
 
 
 if __name__ == '__main__':
-    UserManager.load("users.json")
+    UserManager.filename = "users.json"
+    UserManager.load()
     application = ApplicationBuilder().token(TOKEN).build()
     application.add_handler(onStartCommandHandler())
     application.add_handler(onButtonClickedHandler())
