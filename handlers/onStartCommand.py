@@ -12,7 +12,7 @@ adminKeyboard = [
 
 userKeyboard = [
     [InlineKeyboardButton("Добавить напоминание", callback_data='add_notification')],
-    [InlineKeyboardButton("Узнать информацию", callback_data='get_notifications')]
+    [InlineKeyboardButton("Узнать информацию", callback_data='get_info')]
 ]
 
 userKeyboardLearnInfo = [

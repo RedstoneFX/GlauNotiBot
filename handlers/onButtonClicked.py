@@ -180,7 +180,13 @@ class onButtonClickedHandler(CallbackQueryHandler):
             data = query.data
             parts = data.split('_')
 
-            if len(parts) > 2 and parts[0] == 'show' and parts[1] == 'info':
+            if len(parts) == 2:
+                await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text = "Какую информацию вы хотите узнать?",
+                reply_markup=InlineKeyboardMarkup(userKeyboardLearnInfo))
+
+            elif len(parts) > 2 and parts[0] == 'show' and parts[1] == 'info':
                 if len(parts) == 3:
                     answer_id = int(parts[3])
                     answer = LearnInfo[answer_id - 1]
