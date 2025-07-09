@@ -1,2 +1,3 @@
-pip install python-telegram-bot python-telegram-bot[job-queue]
+pip install python-telegram-bot
+pip install python-telegram-bot[job-queue]
 py main.py
