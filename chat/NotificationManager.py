@@ -137,32 +137,43 @@ class NotificationManager:
             cls.save()
 
 
-    @staticmethod
-    async def notifyPendingToAdmins(context: CallbackContext):
-        for user in UserManager.users.values():
-            hugeMsg = ""
-            if user.isAdmin:
-                for pending in NotificationManager.pending.values():
-                    delta = round(time() - pending[0])
-                    if delta < 15 * 60:
-                        continue
+    # Уведомить администраторов о непрочитанных уведомлениях
+    @classmethod
+    async def notify_pending_to_admins(cls, context: CallbackContext):
+        if not cls._pending:
+            return
 
-                    seconds = delta % 60
-                    minutes = delta // 60 % 60
-                    hours = delta // 360 % 24
-                    days = delta // 360 // 24
+        messages = []
+        current_time = time()
 
-                    if days != 0:
-                        deltamsg = f"{days} дней и {hours} часов"
-                    elif hours != 0:
-                        deltamsg = f"{hours} часов и {minutes} минут"
-                    else:
-                        deltamsg = f"{minutes} минут и {seconds} секунд"
+        for notification in cls._pending.values():
+            delta = current_time - notification.timestamp
+            if delta < 15 * 60:
+                continue
 
-                    hugeMsg += "Пользователю " + UserManager.users[pending[2]].name + \
-                               " было отправлено уведомление, но оно непрочитано уже " + deltamsg + "\n"
-                if hugeMsg != "":
-                    await context.bot.send_message(user.chatID, hugeMsg.strip())
+            user = UserManager.users.get(notification.chat_id)
+            user_name = getattr(user, 'name', 'Unknown')
+            seconds = delta % 60
+            minutes = delta // 60 % 60
+            hours = delta // 360 % 24
+            days = delta // 360 // 24
+            if days != 0:
+                delta_str = f"{days} дней и {hours} часов"
+            elif hours != 0:
+                delta_str = f"{hours} часов и {minutes} минут"
+            else:
+                delta_str = f"{minutes} минут и {seconds} секунд"
+            messages.append(
+                f"Пользователь {user_name} не прочитал уведомление (отправлено {delta_str} назад)"
+            )
+
+        if messages:
+            for user in UserManager.users.values():
+                if getattr(user, 'isAdmin', False):
+                    await context.bot.send_message(
+                        chat_id=user.chatID,
+                        text="\n".join(messages)
+                    )
 
     @staticmethod
     def setNotificationSeen(messageID):
