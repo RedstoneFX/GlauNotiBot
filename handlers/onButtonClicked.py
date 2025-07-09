@@ -10,12 +10,6 @@ from handlers.onStartCommand import onStartCommandHandler
 from misc.buttons import intervalButtonsMarkup, daytimeButtonsMarkup
 from misc.generateMonthButtons import generateMonthButtons
 
-from misc.answers import LearnInfo
-
-from handlers.onStartCommand import userKeyboardLearnInfo, userKeyboardLearnWhatIs, userKeyboardLearnComponents, userKeyboardLearnNoDiagnoseBut, userKeyboardLearnWhatToDo, userKeyboardLearnHowToCure, userKeyboardLearnRegularLife
-
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-
 
 class onButtonClickedHandler(CallbackQueryHandler):
     def __init__(self):
@@ -174,54 +168,6 @@ class onButtonClickedHandler(CallbackQueryHandler):
                     f"Как часто мне следует напоминать вам об этом?\n"
                     f"Раз в {interval[0]} дней {interval[1]} часов и {interval[2]} минут?",
                     reply_markup=intervalButtonsMarkup)
-
-        elif query.data == "reading_info":
-            query = update.callback_query
-            data = query.data
-            parts = data.split('_')
-
-            if len(parts) > 2 and parts[0] == 'show' and parts[1] == 'info':
-                if len(parts) == 3:
-                    answer_id = int(parts[3])
-                    answer = LearnInfo[answer_id - 1]
-                    if answer_id == 1:
-                        await context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text = answer,
-                        reply_markup=InlineKeyboardMarkup(userKeyboardLearnWhatIs))
-                    elif answer_id == 2:
-                        await context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text = answer,
-                        reply_markup=InlineKeyboardMarkup(userKeyboardLearnComponents))
-                    elif answer_id == 3:
-                        await context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text = answer)
-                    elif answer_id == 4:
-                        await context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text = answer)
-                    elif answer_id == 5:
-                        await context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text = answer,
-                        reply_markup=InlineKeyboardMarkup(userKeyboardLearnNoDiagnoseBut))
-                    elif answer_id == 6:
-                        await context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text = answer,
-                        reply_markup=InlineKeyboardMarkup(userKeyboardLearnWhatToDo))
-                    elif answer_id == 7:
-                        await context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text = answer,
-                        reply_markup=InlineKeyboardMarkup(userKeyboardLearnRegularLife))
-                    elif answer_id == 8:
-                        await context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text = answer)
-            user.state = "setting_notif_msg"
 
     @staticmethod
     async def sendUserList(chat):
