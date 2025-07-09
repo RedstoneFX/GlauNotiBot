@@ -27,6 +27,13 @@ class LangDictionary:
     def has(self, name: str):
         return name in self.replicas
 
+    def listWithCertainExtra(self, extraName):
+        result = []
+        for replica in self.replicas:
+            if extraName in replica.extra:
+                result.append(replica)
+        return result
+
 
 class LangManager:
     langs = dict()
