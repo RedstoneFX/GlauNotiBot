@@ -1,6 +1,6 @@
 import atexit
 import logging
-from telegram.ext import ApplicationBuilder
+from telegram.ext import ApplicationBuilder, CallbackContext
 
 from chat.NotificationManager import NotificationManager
 from chat.UserManager import UserManager
@@ -13,16 +13,22 @@ with open("token.txt", mode="r", encoding="utf-8") as f:
 
 logging.basicConfig(format='[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s', level=logging.INFO)
 
+async def saveNotifications(context: CallbackContext):
+    NotificationManager.save()
+
+async def saveUsers(context: CallbackContext):
+    NotificationManager.save()
 
 if __name__ == '__main__':
     UserManager.filename = "users.json"
+    NotificationManager.filename = "notifs.json"
     UserManager.load()
     application = ApplicationBuilder().token(TOKEN).build()
     application.job_queue.run_repeating(NotificationManager.send_expired_notifications, 5)
     application.job_queue.run_repeating(NotificationManager.notify_pending_to_admins, 5)
     application.job_queue.run_repeating(NotificationManager.notify_accepted_to_admins, 5)
-    application.job_queue.run_repeating(lambda x: UserManager.save(), 5*60)
-    application.job_queue.run_repeating(lambda x: NotificationManager.save(), 5*60)
+    application.job_queue.run_repeating(saveUsers, 5*60)
+    application.job_queue.run_repeating(saveNotifications, 5*60)
     atexit.register(UserManager.save)
     atexit.register(NotificationManager.save)
     application.add_handler(onStartCommandHandler())
