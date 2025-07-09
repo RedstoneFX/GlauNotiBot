@@ -175,6 +175,10 @@ class NotificationManager:
                         text="\n".join(messages)
                     )
 
-    @staticmethod
-    def setNotificationSeen(messageID):
-        NotificationManager.accepted.append(NotificationManager.pending.pop(messageID))
+
+    # Сменить статус уведомления на "прочитанное"
+    @classmethod
+    def set_notification_seen(cls, message_id: int):
+        if message_id in cls._pending:
+            cls._accepted.append(cls._pending.pop(message_id))
+            cls.save()
