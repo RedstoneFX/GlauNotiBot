@@ -50,7 +50,7 @@ class NotificationManager:
 
 
     # Сохранить все уведомления в файл
-    @staticmethod
+    @classmethod
     def save(cls):
         if cls.filename is None:
             return
@@ -68,7 +68,7 @@ class NotificationManager:
 
 
     # Загрузить уведомления из файла
-    @staticmethod
+    @classmethod
     def load(cls):
         if cls.filename is None:
             return
