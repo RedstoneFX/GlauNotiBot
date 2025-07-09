@@ -1,5 +1,6 @@
 from queue import PriorityQueue
 from time import time
+import json
 from datetime import timedelta
 
 from telegram import Bot
@@ -51,9 +52,23 @@ class NotificationManager:
     _accepted = [] # Notification
     _last_index = 0
 
+
+    # Сохранить все уведомления в файл
     @staticmethod
-    def save():
-        pass
+    def save(cls):
+        if cls.filename is None:
+            return
+
+        data = {
+            'queue': [notification.to_dict() for _, notification in cls._queue.queue],
+            'pending': [notification.to_dict() for notification in cls._pending.values()],
+            'pending_id': list(cls._pending.keys()),
+            'accepted': [notification.to_dict() for notification in cls._accepted],
+            'last_index': cls._last_index
+        }
+
+        with open(cls.filename, mode="w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
 
     @staticmethod
     def load():
