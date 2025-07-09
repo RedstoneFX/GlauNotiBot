@@ -14,6 +14,9 @@ class Notification:
         self.message = message
         self.interval = interval
 
+    def __lt__(self, other):
+        return self.index < other.index
+
     def to_dict(self) -> dict:
         notif_dict = dict()
         notif_dict["timestamp"] = self.timestamp
@@ -48,10 +51,16 @@ class NotificationManager:
         if cls.filename is None:
             return
 
+        notif_dicts = []
+
+        for notif_id in  cls._pending:
+            notif_dict = cls._pending[notif_id].to_dict()
+            notif_dict["id"] = notif_id
+            notif_dicts.append(notif_dict)
+
         data = {
             'queue': [notification.to_dict() for _, notification in cls._queue.queue],
-            'pending': [notification.to_dict() for notification in cls._pending.values()],
-            'pending_id': list(cls._pending.keys()),
+            'pending': notif_dicts,
             'accepted': [notification.to_dict() for notification in cls._accepted],
             'last_index': cls._last_index
         }
@@ -77,10 +86,8 @@ class NotificationManager:
                 cls._queue.put((notification.timestamp, notification))
 
             pend_notif = data.get('pending', [])
-            pend_id = data.get('pending_id', [])
-            for i in range(len(pend_notif)):
-                notification = Notification.from_dict(pend_notif[i])
-                cls._pending[pend_id[i]] = notification
+            for notif_dict in pend_notif:
+                cls._pending[notif_dict["id"]] = Notification.from_dict(notif_dict)
 
             cls._accepted = [Notification.from_dict(notification_data)
                             for notification_data in data.get('accepted', [])]
