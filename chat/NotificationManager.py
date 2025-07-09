@@ -68,14 +68,34 @@ class NotificationManager:
         cls.save()
         return notification.index
 
-    @staticmethod
-    async def sendExpiredNotifications(context: CallbackContext):
-        while not NotificationManager.queue.empty() and NotificationManager.queue.queue[0][0] <= time():
-            item = NotificationManager.queue.get()
-            msg = await context.bot.send_message(item[2], item[3], reply_markup=notificationReadMarkup)
-            NotificationManager.pending[msg.id] = item.copy()
-            item[0] += item[4]
-            NotificationManager.queue.put(item)
+    # Отправить уведомления по времени
+    @classmethod
+    async def send_expired_notifications(cls, context: CallbackContext):
+        while not cls._queue.empty() and cls._queue.queue[0][0] <= time():
+            _, notification = cls._queue.get()
+            try:
+                msg = await context.bot.send_message(
+                    chat_id=notification.chat_id,
+                    text=notification.message,
+                    reply_markup=notificationReadMarkup
+                )
+                cls._pending[msg.message_id] = notification
+
+                # Обработка интервальных (повторяющихся) уведомлений
+                if notification.interval > 0:
+                    new_notification = Notification(
+                        timestamp=notification.timestamp + notification.interval,
+                        index=notification.index,
+                        chat_id=notification.chat_id,
+                        message=notification.message,
+                        interval=notification.interval
+                    )
+                    cls._queue.put((new_notification.timestamp, new_notification))
+
+                cls.save()
+            except Exception as e:
+                print(f"Не удалось отправить уведомление: {e}")
+                cls._queue.put((notification.timestamp, notification))
 
     @staticmethod
     async def notifyAcceptedToAdmins(context: CallbackContext):
