@@ -97,33 +97,46 @@ class NotificationManager:
                 print(f"Не удалось отправить уведомление: {e}")
                 cls._queue.put((notification.timestamp, notification))
 
-    @staticmethod
-    async def notifyAcceptedToAdmins(context: CallbackContext):
-        for user in UserManager.users.values():
-            hugeMsg = ""
-            if user.isAdmin:
-                for accepted in NotificationManager.accepted:
-                    delta = round(time() - accepted[0])
-                    if delta < 15 * 60:
-                        continue
 
-                    seconds = delta % 60
-                    minutes = delta // 60 % 60
-                    hours = delta // 360 % 24
-                    days = delta // 360 // 24
+    # Уведомить администраторов о прочитанных уведомлениях
+    @classmethod
+    async def notify_accepted_to_admins(cls, context: CallbackContext):
+        if not cls._accepted:
+            return
 
-                    if days != 0:
-                        deltamsg = f"{days} дней и {hours} часов"
-                    elif hours != 0:
-                        deltamsg = f"{hours} часов и {minutes} минут"
-                    else:
-                        deltamsg = f"{minutes} минут и {seconds} секунд"
+        messages = []
+        current_time = time()
 
-                    hugeMsg += "Пользователь " + UserManager.users[accepted[2]].name + \
-                               " прочитал уведомление " + deltamsg + " назад\n"
-                if hugeMsg != "":
-                    await context.bot.send_message(user.chatID, hugeMsg.strip())
-        NotificationManager.accepted.clear()
+        for notification in cls._accepted:
+            delta = current_time - notification.timestamp
+            if delta < 15 * 60:
+                continue
+
+            user = UserManager.users.get(notification.chat_id)
+            user_name = getattr(user, 'name', 'Unknown')
+            seconds = delta % 60
+            minutes = delta // 60 % 60
+            hours = delta // 360 % 24
+            days = delta // 360 // 24
+            if days != 0:
+                delta_str = f"{days} дней и {hours} часов"
+            elif hours != 0:
+                delta_str = f"{hours} часов и {minutes} минут"
+            else:
+                delta_str = f"{minutes} минут и {seconds} секунд"
+            messages.append(f"Пользователь {user_name} прочитал уведомление {delta_str} назад")
+
+        if messages:
+            for user in UserManager.users.values():
+                if getattr(user, 'isAdmin', False):
+                    await context.bot.send_message(
+                        chat_id=user.chatID,
+                        text="\n".join(messages)
+                    )
+            cls._accepted.clear()
+            cls.save()
+
+
     @staticmethod
     async def notifyPendingToAdmins(context: CallbackContext):
         for user in UserManager.users.values():
