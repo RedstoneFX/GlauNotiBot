@@ -17,9 +17,9 @@ if __name__ == '__main__':
     UserManager.filename = "users.json"
     UserManager.load()
     application = ApplicationBuilder().token(TOKEN).build()
-    application.job_queue.run_repeating(NotificationManager.sendExpiredNotifications, 5)
-    application.job_queue.run_repeating(NotificationManager.notifyPendingToAdmins, 5)
-    application.job_queue.run_repeating(NotificationManager.notifyAcceptedToAdmins, 5)
+    application.job_queue.run_repeating(NotificationManager.send_expired_notifications, 5)
+    application.job_queue.run_repeating(NotificationManager.notify_pending_to_admins, 5)
+    application.job_queue.run_repeating(NotificationManager.notify_accepted_to_admins, 5)
     application.add_handler(onStartCommandHandler())
     application.add_handler(onButtonClickedHandler())
     application.add_handler(onMessageReceivedHandler())
