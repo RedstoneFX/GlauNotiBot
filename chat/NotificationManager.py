@@ -46,6 +46,10 @@ class NotificationManager:
     pending = dict()
     accepted = []
     lastIndex = 0
+    _queue = PriorityQueue()
+    _pending = {}  # message_id: Notification
+    _accepted = [] # Notification
+    _last_index = 0
 
     @staticmethod
     def save():
@@ -55,9 +59,14 @@ class NotificationManager:
     def load():
         pass
 
-    @staticmethod
-    def addNotification(timestamp: float, chatID: int, msg: str, interval: float):
-        NotificationManager.queue.put([timestamp, NotificationManager.lastIndex, chatID, msg, interval])
+    # Добавить новое уведомление в очередь
+    @classmethod
+    def add_notification(cls, timestamp: float, chat_id: int, msg: str, interval: float) -> int:
+        cls._last_index += 1
+        notification = Notification(timestamp, cls._last_index, chat_id, msg, interval)
+        cls._queue.put((notification.timestamp, notification))
+        cls.save()
+        return notification.index
 
     @staticmethod
     async def sendExpiredNotifications(context: CallbackContext):
