@@ -6,15 +6,14 @@ from telegram.ext import ContextTypes, CallbackQueryHandler
 
 from chat.NotificationManager import NotificationManager
 from chat.UserManager import UserManager
-from handlers.onStartCommand import onStartCommandHandler
-from misc.buttons import intervalButtonsMarkup, daytimeButtonsMarkup
+
+from misc.buttons import intervalButtonsMarkup, daytimeButtonsMarkup, userKeyboardLearnInfo, userKeyboardLearnWhatIs, \
+    userKeyboardLearnComponents, userKeyboardLearnNoDiagnoseBut, userKeyboardLearnWhatToDo, \
+    userKeyboardLearnRegularLife, userKeyboardLearnHowToCure
 from misc.generateMonthButtons import generateMonthButtons
 
 from misc.answers import LearnInfo, LearnWhatIs, LearnComponents, LearnNoDiagnoseBut, LearnWhatToDo, LearnHowToCure, LearnRegularLife
-
-from handlers.onStartCommand import userKeyboardLearnInfo, userKeyboardLearnWhatIs, userKeyboardLearnComponents, userKeyboardLearnNoDiagnoseBut, userKeyboardLearnWhatToDo, userKeyboardLearnHowToCure, userKeyboardLearnRegularLife
-
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardMarkup
 
 
 class onButtonClickedHandler(CallbackQueryHandler):
