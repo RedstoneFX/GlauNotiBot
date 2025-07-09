@@ -1,8 +1,6 @@
 from telegram import Chat
 import json
 
-import atexit
-
 
 class User:
     def __init__(self, chatID: int, username: str, isAdmin=False, state="idle", extra=dict()):
@@ -52,6 +50,3 @@ class UserManager:
                                                              user["state"], user["extra"])
         except FileNotFoundError:
             pass
-
-
-atexit.register(UserManager.save)

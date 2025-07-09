@@ -1,3 +1,4 @@
+import atexit
 import logging
 from telegram.ext import ApplicationBuilder
 
@@ -20,7 +21,12 @@ if __name__ == '__main__':
     application.job_queue.run_repeating(NotificationManager.send_expired_notifications, 5)
     application.job_queue.run_repeating(NotificationManager.notify_pending_to_admins, 5)
     application.job_queue.run_repeating(NotificationManager.notify_accepted_to_admins, 5)
+    application.job_queue.run_repeating(lambda x: UserManager.save(), 5*60)
+    application.job_queue.run_repeating(lambda x: NotificationManager.save(), 5*60)
+    atexit.register(UserManager.save)
+    atexit.register(NotificationManager.save)
     application.add_handler(onStartCommandHandler())
     application.add_handler(onButtonClickedHandler())
     application.add_handler(onMessageReceivedHandler())
+
     application.run_polling()
