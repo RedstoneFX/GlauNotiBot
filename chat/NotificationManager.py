@@ -43,10 +43,6 @@ class Notification:
 
 class NotificationManager:
     filename = None
-    queue = PriorityQueue()
-    pending = dict()
-    accepted = []
-    lastIndex = 0
     _queue = PriorityQueue()
     _pending = {}  # message_id: Notification
     _accepted = [] # Notification
@@ -70,9 +66,36 @@ class NotificationManager:
         with open(cls.filename, mode="w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
 
+
+    # Загрузить уведомления из файла
     @staticmethod
-    def load():
-        pass
+    def load(cls):
+        if cls.filename is None:
+            return
+
+        try:
+            with open(cls.filename, mode="r", encoding="utf-8") as f:
+                data = json.load(f)
+
+            cls._last_index = data.get('last_index', 0)
+
+            for notification_data in data.get('queue', []):
+                notification = Notification.from_dict(notification_data)
+                cls._queue.put((notification.timestamp, notification))
+
+            pend_notif = data.get('pending', [])
+            pend_id = data.get('pending_id', [])
+            for i in range(len(pend_notif)):
+                notification = Notification.from_dict(pend_notif[i])
+                cls._pending[pend_id[i]] = notification
+
+            cls._accepted = [Notification.from_dict(notification_data)
+                            for notification_data in data.get('accepted', [])]
+
+        except FileNotFoundError:
+            pass
+        except Exception as e:
+            print(f"Не удалось загрузить уведомления: {e}")
 
     # Добавить новое уведомление в очередь
     @classmethod
