@@ -102,17 +102,17 @@ class onButtonClickedHandler(CallbackQueryHandler):
                         answer = LearnWhatIs[answer_id_2 - 1]
                         await context.bot.send_message(
                         chat_id=update.effective_chat.id,
-                        text=answer_id_2, )
+                        text=answer, )
                     elif answer_id_1 == 2:
                         answer = LearnComponents[answer_id_2 - 1]
                         await context.bot.send_message(
                         chat_id=update.effective_chat.id,
-                        text=answer_id_2, )
+                        text=answer, )
                     elif answer_id_1 == 5:
                         answer = LearnNoDiagnoseBut[answer_id_2 - 1]
                         await context.bot.send_message(
                         chat_id=update.effective_chat.id,
-                        text=answer_id_2, )
+                        text=answer, )
                     elif answer_id_1 == 6:
                         answer = LearnWhatToDo[answer_id_2 - 1]
                         if answer_id_2 == 1:
@@ -128,14 +128,14 @@ class onButtonClickedHandler(CallbackQueryHandler):
                         answer = LearnRegularLife[answer_id_2 - 1]
                         await context.bot.send_message(
                         chat_id=update.effective_chat.id,
-                        text=answer_id_2, )
+                        text=answer, )
 
                 elif len(parts) == 5:
                     answer_id_3 = int(parts[4])
                     answer = LearnHowToCure[answer_id_3 - 1]
                     await context.bot.send_message(
                     chat_id=update.effective_chat.id,
-                    text=answer_id_3)
+                    text=answer)
 
         elif user.state == "setting_time":
             now = user.extra["datetime"]
