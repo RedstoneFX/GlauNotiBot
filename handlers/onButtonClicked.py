@@ -26,7 +26,7 @@ class onButtonClickedHandler(CallbackQueryHandler):
 
         elif query.data == "accepted":
             await update.effective_message.edit_text("(Прочитано)" + update.effective_message.text)
-            NotificationManager.setNotificationSeen(update.effective_message.id)
+            NotificationManager.set_notification_seen(update.effective_message.id)
 
         elif query.data == "add_notification":
             await update.effective_chat.send_message("Хорошо. Что я должен буду вам сказать, чтобы напомнить вам об "
@@ -68,7 +68,7 @@ class onButtonClickedHandler(CallbackQueryHandler):
                                                          reply_markup=daytimeButtonsMarkup)
             else:
                 rawInterval = user.extra["interval"]
-                NotificationManager.addNotification(
+                NotificationManager.add_notification(
                     datetime(*user.extra["datetime"]).timestamp(),
                     update.effective_chat.id,
                     user.extra["msg"],
