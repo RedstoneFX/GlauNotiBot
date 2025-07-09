@@ -12,6 +12,34 @@ from chat.UserManager import UserManager
 from misc.buttons import notificationReadMarkup
 
 
+class Notification:
+    def __init__(self, timestamp: float, index: int, chat_id: int, message: str, interval: float):
+        self.timestamp = timestamp
+        self.index = index
+        self.chat_id = chat_id
+        self.message = message
+        self.interval = interval
+
+    def to_dict(self) -> dict:
+        notif_dict = dict()
+        notif_dict["timestamp"] = self.timestamp
+        notif_dict["index"] = self.index
+        notif_dict["chat_id"] = self.chat_id
+        notif_dict["message"] = self.message
+        notif_dict["interval"] = self.interval
+        return notif_dict
+
+    @classmethod
+    def from_dict(cls, data: dict) -> 'Notification':
+        return cls(
+            timestamp=data["timestamp"],
+            index=data["index"],
+            chat_id=data["chat_id"],
+            message=data["message"],
+            interval=data["interval"]
+        )
+
+
 class NotificationManager:
     filename = None
     queue = PriorityQueue()
@@ -97,8 +125,3 @@ class NotificationManager:
     @staticmethod
     def setNotificationSeen(messageID):
         NotificationManager.accepted.append(NotificationManager.pending.pop(messageID))
-
-
-
-
-
