@@ -2,24 +2,24 @@ from os import listdir
 import json
 
 class Replica:
-    def __init__(self, name: str, isForAdminOnly: bool, body: str):
-        self.name = name
-        self.isForAdmin = isForAdminOnly
+    def __init__(self, body: str, extra:dict):
         self.body = body
+        self.extra = extra or dict()
 
     @staticmethod
     def fromDict(dictionary: dict):
-        return Replica(dictionary["name"], dictionary["isForAdminOnly"], dictionary["body"])
+        return Replica(dictionary["body"], dictionary.get("extra", dict()))
+
+    def getExtra(self, name):
+        self.extra.get(name, None)
 
 
 class LangDictionary:
     def __init__(self, langDir: str):
         self.replicas = dict()
         for file in listdir(langDir):
-            with open(file, encoding="utf-8", mode="r") as f:
-                rawDict = json.load(f)
-                replica = Replica.fromDict(rawDict)
-                self.replicas[replica.name] = replica
+            with open(langDir + file, encoding="utf-8", mode="r") as f:
+                self.replicas[file[:-5]] = Replica.fromDict(json.load(f))
 
     def get(self, name: str):
         self.replicas.get(name, "[Ошибка: не удалось найти реплику]")
