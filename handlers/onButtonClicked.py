@@ -34,6 +34,18 @@ class onButtonClickedHandler(CallbackQueryHandler):
             await update.effective_message.edit_text("(Прочитано)" + update.effective_message.text)
             NotificationManager.set_notification_seen(update.effective_message.id)
 
+        elif query.data == "get_info":
+
+            user.state = "reading_info"
+            data = query.data
+            parts = data.split('_')
+
+            if len(parts) == 2:
+                await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text = "Какую информацию вы хотите узнать?",
+                reply_markup=InlineKeyboardMarkup(userKeyboardLearnInfo))
+
         elif query.data == "add_notification":
             await update.effective_chat.send_message("Хорошо. Что я должен буду вам сказать, чтобы напомнить вам об "
                                                      "этом?")
@@ -175,58 +187,51 @@ class onButtonClickedHandler(CallbackQueryHandler):
                     f"Раз в {interval[0]} дней {interval[1]} часов и {interval[2]} минут?",
                     reply_markup=intervalButtonsMarkup)
 
-        elif query.data == "reading_info":
-            query = update.callback_query
+        elif user.state == "reading_info":
             data = query.data
             parts = data.split('_')
 
-            if len(parts) == 2:
-                await context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text = "Какую информацию вы хотите узнать?",
-                reply_markup=InlineKeyboardMarkup(userKeyboardLearnInfo))
-
-            elif len(parts) > 2 and parts[0] == 'show' and parts[1] == 'info':
+            if len(parts) > 2 and parts[0] == 'show' and parts[1] == 'info':
                 if len(parts) == 3:
                     answer_id = int(parts[3])
                     answer = LearnInfo[answer_id - 1]
                     if answer_id == 1:
                         await context.bot.send_message(
                         chat_id=update.effective_chat.id,
-                        text = answer,
+                        text=answer,
                         reply_markup=InlineKeyboardMarkup(userKeyboardLearnWhatIs))
                     elif answer_id == 2:
                         await context.bot.send_message(
                         chat_id=update.effective_chat.id,
-                        text = answer,
+                        text=answer,
                         reply_markup=InlineKeyboardMarkup(userKeyboardLearnComponents))
                     elif answer_id == 3:
                         await context.bot.send_message(
                         chat_id=update.effective_chat.id,
-                        text = answer)
+                        text=answer)
                     elif answer_id == 4:
                         await context.bot.send_message(
                         chat_id=update.effective_chat.id,
-                        text = answer)
+                        text=answer)
                     elif answer_id == 5:
                         await context.bot.send_message(
                         chat_id=update.effective_chat.id,
-                        text = answer,
+                        text=answer,
                         reply_markup=InlineKeyboardMarkup(userKeyboardLearnNoDiagnoseBut))
                     elif answer_id == 6:
                         await context.bot.send_message(
                         chat_id=update.effective_chat.id,
-                        text = answer,
+                        text=answer,
                         reply_markup=InlineKeyboardMarkup(userKeyboardLearnWhatToDo))
                     elif answer_id == 7:
                         await context.bot.send_message(
                         chat_id=update.effective_chat.id,
-                        text = answer,
+                        text=answer,
                         reply_markup=InlineKeyboardMarkup(userKeyboardLearnRegularLife))
                     elif answer_id == 8:
                         await context.bot.send_message(
                         chat_id=update.effective_chat.id,
-                        text = answer)
+                        text=answer)
 
                 elif len(parts) == 4:
                     answer_id_1 = int(parts[3])
@@ -235,17 +240,17 @@ class onButtonClickedHandler(CallbackQueryHandler):
                         answer = LearnWhatIs[answer_id_2 - 1]
                         await context.bot.send_message(
                         chat_id=update.effective_chat.id,
-                        text = answer_id_2,)
+                        text=answer_id_2, )
                     elif answer_id_1 == 2:
                         answer = LearnComponents[answer_id_2 - 1]
                         await context.bot.send_message(
                         chat_id=update.effective_chat.id,
-                        text = answer_id_2,)
+                        text=answer_id_2, )
                     elif answer_id_1 == 5:
                         answer = LearnNoDiagnoseBut[answer_id_2 - 1]
                         await context.bot.send_message(
                         chat_id=update.effective_chat.id,
-                        text = answer_id_2,)
+                        text=answer_id_2, )
                     elif answer_id_1 == 6:
                         answer = LearnWhatToDo[answer_id_2 - 1]
                         if answer_id_2 == 1:
@@ -261,7 +266,7 @@ class onButtonClickedHandler(CallbackQueryHandler):
                         answer = LearnRegularLife[answer_id_2 - 1]
                         await context.bot.send_message(
                         chat_id=update.effective_chat.id,
-                        text = answer_id_2,)
+                        text=answer_id_2, )
 
                 elif len(parts) == 5:
                     answer_id_3 = int(parts[5])
@@ -269,8 +274,6 @@ class onButtonClickedHandler(CallbackQueryHandler):
                     await context.bot.send_message(
                     chat_id=update.effective_chat.id,
                     text=answer_id_3)
-
-            user.state = "reading_info"
 
     @staticmethod
     async def sendUserList(chat):
