@@ -1,4 +1,4 @@
-import datetime, calendar
+import calendar
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 months = ["0", "Январь", "Февраль", "Март",

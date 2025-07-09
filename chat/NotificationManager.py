@@ -1,14 +1,7 @@
 from queue import PriorityQueue
 from time import time
 import json
-from datetime import timedelta
-
-from telegram import Bot
-
-import asyncio
-
 from telegram.ext import CallbackContext
-
 from chat.UserManager import UserManager
 from misc.buttons import notificationReadMarkup
 
