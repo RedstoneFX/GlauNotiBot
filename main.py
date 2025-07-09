@@ -23,6 +23,7 @@ if __name__ == '__main__':
     UserManager.filename = "users.json"
     NotificationManager.filename = "notifs.json"
     UserManager.load()
+    NotificationManager.load()
     application = ApplicationBuilder().token(TOKEN).build()
     application.job_queue.run_repeating(NotificationManager.send_expired_notifications, 5)
     application.job_queue.run_repeating(NotificationManager.notify_pending_to_admins, 5)
