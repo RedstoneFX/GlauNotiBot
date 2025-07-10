@@ -2,6 +2,7 @@ import atexit
 import logging
 from telegram.ext import ApplicationBuilder, CallbackContext
 
+from chat.LangManager import LangManager
 from chat.NotificationManager import NotificationManager
 from chat.UserManager import UserManager
 from handlers.onButtonClicked import onButtonClickedHandler
@@ -31,6 +32,7 @@ if __name__ == '__main__':
     application.job_queue.run_repeating(saveNotifications, 5*60)
     atexit.register(UserManager.save)
     atexit.register(NotificationManager.save)
+    LangManager.loadLang("ru_ru", "lang/ru_ru/")
     application.add_handler(onStartCommandHandler())
     application.add_handler(onButtonClickedHandler())
     application.add_handler(onMessageReceivedHandler())

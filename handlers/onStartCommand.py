@@ -6,14 +6,13 @@ from chat.UserManager import UserManager
 adminKeyboard = [
     [InlineKeyboardButton("Добавить напоминание (отладка)", callback_data='add_notification')],
     [InlineKeyboardButton("Получить список клиентов", callback_data='get_users')],
-    [InlineKeyboardButton("Узнать информацию", callback_data='get_notifications')]
+    [InlineKeyboardButton("Узнать информацию", callback_data='ask_buttons')]
 ]
 
 userKeyboard = [
     [InlineKeyboardButton("Добавить напоминание", callback_data='add_notification')],
-    [InlineKeyboardButton("Узнать информацию", callback_data='get_notifications')]
+    [InlineKeyboardButton("Узнать информацию", callback_data='ask_buttons')]
 ]
-
 
 class onStartCommandHandler(CommandHandler):
     def __init__(self):

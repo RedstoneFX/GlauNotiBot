@@ -4,11 +4,14 @@ from calendar import monthrange
 from telegram import Update
 from telegram.ext import ContextTypes, CallbackQueryHandler
 
+from chat.LangManager import LangManager
 from chat.NotificationManager import NotificationManager
 from chat.UserManager import UserManager
-from handlers.onStartCommand import onStartCommandHandler
-from misc.buttons import intervalButtonsMarkup, daytimeButtonsMarkup
+
+from misc.buttons import intervalButtonsMarkup, daytimeButtonsMarkup, getAskButtons
 from misc.generateMonthButtons import generateMonthButtons
+
+from telegram import InlineKeyboardMarkup
 
 
 class onButtonClickedHandler(CallbackQueryHandler):
@@ -21,6 +24,8 @@ class onButtonClickedHandler(CallbackQueryHandler):
         await query.answer()
         user = UserManager.getUser(update.effective_chat)
 
+        parts = query.data.split('.')
+
         if query.data == "get_users":
             await onButtonClickedHandler.sendUserList(update.effective_chat)
 
@@ -32,6 +37,13 @@ class onButtonClickedHandler(CallbackQueryHandler):
             await update.effective_chat.send_message("Хорошо. Что я должен буду вам сказать, чтобы напомнить вам об "
                                                      "этом?")
             user.state = "setting_notif_msg"
+
+        elif parts[0] == "ask":
+            answer = LangManager.get(parts[2], parts[1])
+            await update.effective_message.edit_text(answer.extra["title"] + "\n\n" + answer.body)
+        elif query.data == "ask_buttons":
+            await update.effective_message.edit_text("Конечно! Что именно вы хотите узнать?", reply_markup=InlineKeyboardMarkup(getAskButtons()))
+
         elif user.state == "setting_time":
             now = user.extra["datetime"]
             if query.data == "+6hours":
