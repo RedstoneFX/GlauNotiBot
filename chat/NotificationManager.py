@@ -177,9 +177,10 @@ class NotificationManager:
             raise Exception("Анонс уже был сделан ранее, так как для этого уведомления уже определены сообщения у админов")
         flag_sent_at_least_one = False
         notification = cls._notification_by_id[pending.parent_notification_id]
+        client_name = UserManager.users[notification.chat_id].name
         for user in UserManager.users.values():
             if user.isAdmin:
-                admin_msg = await bot.send_message(user.chatID, f"✴️ Уведомление отправлено пользователю @{user.name} менее 15 минут назад!\nСодержание: \"{notification.message}\"")
+                admin_msg = await bot.send_message(user.chatID, f"✴️ Уведомление отправлено пользователю @{client_name} менее 15 минут назад!\nСодержание: \"{notification.message}\"")
                 pending.admin_messages.append((admin_msg.chat_id, admin_msg.id))
                 flag_sent_at_least_one = True
         if flag_sent_at_least_one:
