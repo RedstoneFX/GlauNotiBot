@@ -177,7 +177,7 @@ class NotificationManager:
         notification = cls._notification_by_id[pending.parent_notification_id]
         for user in UserManager.users.values():
             if user.isAdmin:
-                admin_msg = await bot.send_message(user.chatID, f"✴️ Уведомление только что было отправлено пользователю @{user.name}!\nСодержание: \"{notification.message}\"")
+                admin_msg = await bot.send_message(user.chatID, f"✴️ Уведомление отправлено пользователю @{user.name} менее 15 минут назад!\nСодержание: \"{notification.message}\"")
                 pending.admin_messages.append((admin_msg.chat_id, admin_msg.id))
                 flag_sent_at_least_one = True
         if flag_sent_at_least_one:
@@ -210,7 +210,7 @@ class NotificationManager:
 
                 for admin_chat_id, admin_msg_id in notif_ref.admin_messages:
                     await context.bot.edit_message_text(
-                        f"🅾️Пользователь {user_name} не прочитал уведомление, отправленое {delta_str} назад.\nСодержание: \"{notification.message}\"",
+                        f"🅾️Пользователь @{user_name} не прочитал уведомление, отправленное {delta_str} назад.\nСодержание: \"{notification.message}\"",
                         admin_chat_id, admin_msg_id)
 
 
@@ -235,7 +235,7 @@ class NotificationManager:
                     else:
                         delta_str = f"{minutes} минут"
                     await bot.edit_message_text(
-                        f"✅Пользователь {user_name} прочитал уведомление, отправленное {delta_str} назад.\nСодержание: \"{notification.message}\"",
+                        f"✅Пользователь @{user_name} подтвердил уведомление спустя {delta_str} после его отправки.\nСодержание: \"{notification.message}\"",
                         admin_chat_id, admin_msg_id)
                 cls.sent_not_read.pop(i)
                 break
