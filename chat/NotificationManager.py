@@ -223,6 +223,8 @@ class NotificationManager:
                         f"✅Пользователь @{user_name} подтвердил уведомление спустя {convert_delta_to_str(delta)} после его отправки.\nСодержание: \"{notification.message}\"",
                         admin_chat_id, admin_msg_id)
                 cls.sent_not_read.pop(i)
+                if notification.interval <= 0:
+                    cls.remove(notification.id)
                 break
 
     @classmethod
