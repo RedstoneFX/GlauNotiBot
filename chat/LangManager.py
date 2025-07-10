@@ -36,6 +36,24 @@ class LangDictionary:
                 result.append(replica)
         return result
 
+    def getUniqueExtraValues(self, extra_name: str) -> set[str]:
+        values = set()
+        for replica in self.replicas.values():
+            value = replica.extra.get(extra_name, None)
+            if value and value not in values:
+                values.add(value)
+        return values
+
+
+    def getAllWithExtraValue(self, extra_name: str, extra_value: str):
+        replicas = []
+        for replica in self.replicas.values():
+            value = replica.extra.get(extra_name, None)
+            if value and value == extra_value:
+                replicas.append(replica)
+        return replicas
+
+
 
 class LangManager:
     langs: dict[str, LangDictionary] = dict()
