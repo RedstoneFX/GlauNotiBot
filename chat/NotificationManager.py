@@ -55,7 +55,7 @@ class NotificationManager:
 
         for notif_id in  cls._pending:
             notif_dict = cls._pending[notif_id].to_dict()
-            notif_dict["id"] = notif_id
+            notif_dict["msg_id"] = notif_id
             notif_dicts.append(notif_dict)
 
         data = {
@@ -87,7 +87,7 @@ class NotificationManager:
 
             pend_notif = data.get('pending', [])
             for notif_dict in pend_notif:
-                cls._pending[notif_dict["id"]] = Notification.from_dict(notif_dict)
+                cls._pending[notif_dict["msg_id"]] = Notification.from_dict(notif_dict)
 
             cls._accepted = [Notification.from_dict(notification_data)
                             for notification_data in data.get('accepted', [])]
