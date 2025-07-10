@@ -9,11 +9,13 @@ from chat.NotificationManager import NotificationManager
 from chat.UserManager import UserManager
 
 from misc.buttons import intervalButtonsMarkup, daytimeButtonsMarkup, getAskButtons
+from misc.convert_delta_to_str import convert_delta_to_str
 from misc.generateMonthButtons import generateMonthButtons
 
 from telegram import InlineKeyboardMarkup
 
-from misc.generate_buttons_for_notifications import generate_buttons_for_notifications
+from misc.generate_buttons_for_notifications import generate_buttons_for_notifications, \
+    generate_buttons_for_notification
 
 
 class onButtonClickedHandler(CallbackQueryHandler):
@@ -46,15 +48,33 @@ class onButtonClickedHandler(CallbackQueryHandler):
         elif query.data == "ask_buttons":
             await update.effective_message.edit_text("Конечно! Что именно вы хотите узнать?", reply_markup=InlineKeyboardMarkup(getAskButtons()))
 
-        elif query.data == "list_notifications":
+        elif query.data == "list_notifications" or parts[0] == "remove_notification":
+
+            if parts[0] == "remove_notification":
+                NotificationManager.remove(int(parts[1]))
+
             notifications = NotificationManager.get_notifications_for_chat(update.effective_chat.id)
             if not notifications:
-                await update.effective_message.edit_text("У вас еще нет ни одного прикрепленного уведомления.")
+                await update.effective_message.edit_text("У вас нет ни одного прикрепленного уведомления. Напишите /start, чтобы создать такое.")
                 return
             buttons = generate_buttons_for_notifications(notifications)
             await update.effective_message.edit_text("Вот уведомления, закрипленные за вами:",
                                                      reply_markup=InlineKeyboardMarkup(buttons))
 
+        elif parts[0] == "notification" or parts[0] == "want_to_remove_notification":
+            notification = NotificationManager.get(int(parts[1]))
+            if not notification:
+                await update.effective_message.edit_text("Кажется, этого уведомления больше нет.")
+            else:
+                interval = "Один раз" if notification.interval == 0 else convert_delta_to_str(notification.interval)
+                await update.effective_message.edit_text(
+                    "Вот информация об этом уведомлении:" +
+                    "\n\n\"" + notification.message + "\"" +
+                    "\n\nИнтервал: " + interval +
+                    "\nСледующее сообщение через: " +
+                    convert_delta_to_str(NotificationManager.get_time_before_next(notification.id)),
+                    reply_markup=InlineKeyboardMarkup(generate_buttons_for_notification(notification.id, parts[0] == "want_to_remove_notification"))
+                )
 
         elif user.state == "setting_time":
             now = user.extra["datetime"]

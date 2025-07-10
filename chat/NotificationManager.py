@@ -238,3 +238,24 @@ class NotificationManager:
             if notif_ptr.parent_notification_id == notification_id:
                 return notif_ptr.timestamp
         return 0
+
+    @classmethod
+    def get(cls, notification_id: int):
+        return cls._notification_by_id.get(notification_id, None)
+
+    @classmethod
+    def get_time_before_next(cls, notification_id: int):
+        return cls.get_next_time(notification_id) - time()
+
+    @classmethod
+    def remove(cls, notification_id):
+        if notification_id not in cls._notification_by_id:
+            return
+        cls._notification_by_id.pop(notification_id)
+
+        new_queue = PriorityQueue()
+        while not cls._queue.empty():
+            notif_ref: PendingNotification = cls._queue.get()
+            if notif_ref.parent_notification_id != notification_id:
+                new_queue.put(notif_ref)
+        cls._queue = new_queue
