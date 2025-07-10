@@ -1,49 +1,63 @@
 from queue import PriorityQueue
 from time import time
 import json
+
+from telegram import Bot
 from telegram.ext import CallbackContext
 from chat.UserManager import UserManager
 from misc.buttons import notificationReadMarkup
 
-
 class PendingNotification:
-    def __init__(self, timestamp: float, parent_notification_id: int):
+    def __init__(self, timestamp: float, parent_notification_id: int, admin_messages=None, msg_id: int=0):
         self.timestamp = timestamp
         self.parent_notification_id = parent_notification_id
-        self.admin_msg_ids = []
+        self.admin_messages = admin_messages or []
+        self.msg_id = msg_id
 
     def addAdminMsg(self, admin_msg_id):
-        self.admin_msg_ids.append(admin_msg_id)
+        self.admin_messages.append(admin_msg_id)
 
     def to_dict(self):
         return {
             "timestamp": self.timestamp,
             "parent_parent_notification_id": self.parent_notification_id,
-            "admin_msg_ids": self.admin_msg_ids
+            "admin_messages": self.admin_messages,
+            "msg_id": self.msg_id
         }
 
     @staticmethod
-    def from_dict(dict):
-        obj = PendingNotification(dict["timestamp"], dict["parent_parent_notification_id"])
-        obj.admin_msg_ids.extend(dict["admin_msg_ids"])
-        return obj
+    def from_dict(raw):
+        return PendingNotification(
+            timestamp=raw["timestamp"],
+            parent_notification_id=raw["parent_parent_notification_id"],
+            admin_messages=raw["admin_messages"],
+            msg_id=raw["msg_id"]
+        )
+
+    def __lt__(self, other):
+        if self.timestamp < other.timestamp:
+            return True
+        elif self.timestamp == other.timestamp and self.parent_notification_id < other.parent_notification_id:
+            return True
+        elif self.timestamp == other.timestamp and self.parent_notification_id == other.parent_notification_id and self.msg_id < other.msg_id:
+            return True
+        else:
+            return False
 
 
 class Notification:
-    def __init__(self, timestamp: float, index: int, chat_id: int, message: str, interval: float):
-        self.timestamp = timestamp
-        self.index = index
+    def __init__(self, id: int, chat_id: int, message: str, interval: float):
+        self.id = id
         self.chat_id = chat_id
         self.message = message
         self.interval = interval
 
     def __lt__(self, other):
-        return self.index < other.index
+        return self.id < other.id
 
     def to_dict(self) -> dict:
         notif_dict = dict()
-        notif_dict["timestamp"] = self.timestamp
-        notif_dict["index"] = self.index
+        notif_dict["id"] = self.id
         notif_dict["chat_id"] = self.chat_id
         notif_dict["message"] = self.message
         notif_dict["interval"] = self.interval
@@ -52,20 +66,22 @@ class Notification:
     @classmethod
     def from_dict(cls, data: dict) -> 'Notification':
         return cls(
-            timestamp=data["timestamp"],
-            index=data["index"],
+            id=data["id"],
             chat_id=data["chat_id"],
             message=data["message"],
             interval=data["interval"]
         )
 
+    def make_pending(self, timestamp: float):
+        return PendingNotification(timestamp, self.id)
+
 
 class NotificationManager:
     filename = None
     _queue = PriorityQueue()
-    _pending = {}  # message_id: Notification
-    _accepted = [] # Notification
-    _last_index = 0
+    sent_not_read: list[PendingNotification] = []
+    _notification_by_id: dict[int, Notification] = {}
+    _last_created_notification_id = 0
 
 
     # Сохранить все уведомления в файл
@@ -74,18 +90,11 @@ class NotificationManager:
         if cls.filename is None:
             return
 
-        notif_dicts = []
-
-        for notif_id in  cls._pending:
-            notif_dict = cls._pending[notif_id].to_dict()
-            notif_dict["msg_id"] = notif_id
-            notif_dicts.append(notif_dict)
-
         data = {
-            'queue': [notification.to_dict() for _, notification in cls._queue.queue],
-            'pending': notif_dicts,
-            'accepted': [notification.to_dict() for notification in cls._accepted],
-            'last_index': cls._last_index
+            'queue': [notif_ref.to_dict() for notif_ref in cls._queue.queue],
+            'sent_not_read': [notif_ref.to_dict() for notif_ref in cls.sent_not_read],
+            'notifications': [notification.to_dict() for notification in cls._notification_by_id.values()],
+            'last_created_notification_id': cls._last_created_notification_id
         }
 
         with open(cls.filename, mode="w", encoding="utf-8") as f:
@@ -102,144 +111,130 @@ class NotificationManager:
             with open(cls.filename, mode="r", encoding="utf-8") as f:
                 data = json.load(f)
 
-            cls._last_index = data.get('last_index', 0)
+            cls._last_created_notification_id = data.get('last_created_notification_id', 0)
 
-            for notification_data in data.get('queue', []):
-                notification = Notification.from_dict(notification_data)
-                cls._queue.put((notification.timestamp, notification))
+            for notif_ref_dict in data.get('queue', []):
+                notif_ref = PendingNotification.from_dict(notif_ref_dict)
+                cls._queue.put(notif_ref)
 
-            pend_notif = data.get('pending', [])
-            for notif_dict in pend_notif:
-                cls._pending[notif_dict["msg_id"]] = Notification.from_dict(notif_dict)
+            for notif_ref_dict in data.get('sent_not_read', []):
+                notif_ref = PendingNotification.from_dict(notif_ref_dict)
+                cls.sent_not_read.append(notif_ref)
 
-            cls._accepted = [Notification.from_dict(notification_data)
-                            for notification_data in data.get('accepted', [])]
+            for notification_dict in data.get('notifications', []):
+                notification = Notification.from_dict(notification_dict)
+                cls._notification_by_id[notification.id] = notification
 
         except FileNotFoundError:
             pass
-        except Exception as e:
-            print(f"Не удалось загрузить уведомления: {e}")
 
-    # Добавить новое уведомление в очередь
+    # Создать новое уведомление
     @classmethod
-    def add_notification(cls, timestamp: float, chat_id: int, msg: str, interval: float) -> int:
-        cls._last_index += 1
-        notification = Notification(timestamp, cls._last_index, chat_id, msg, interval)
-        cls._queue.put((notification.timestamp, notification))
+    def add_notification(cls, first_timestamp: float, chat_id: int, msg: str, interval: float) -> int:
+        cls._last_created_notification_id += 1
+        notification = Notification(cls._last_created_notification_id, chat_id, msg, interval)
+        cls._notification_by_id[cls._last_created_notification_id] = notification
+        cls._queue.put(notification.make_pending(first_timestamp))
         cls.save()
-        return notification.index
+        return cls._last_created_notification_id
 
     # Отправить уведомления по времени
     @classmethod
     async def send_expired_notifications(cls, context: CallbackContext):
-        while not cls._queue.empty() and cls._queue.queue[0][0] <= time():
-            _, notification = cls._queue.get()
-            try:
-                msg = await context.bot.send_message(
-                    chat_id=notification.chat_id,
-                    text=notification.message,
-                    reply_markup=notificationReadMarkup
+        flag_sent_at_least_one = False
+        # пытаться отправить уведомление, пока в очереди есть уведомления с просроченной датой...
+        while not cls._queue.empty() and cls._queue.queue[0].timestamp <= time():
+            # Извлекаем верхнее уведомление, дата которого просрочена
+            notification_ref: PendingNotification = cls._queue.get()
+            notification = cls._notification_by_id[notification_ref.parent_notification_id]
+            # Отправляем уведомление клиенту
+            msg = await context.bot.send_message(
+                chat_id=notification.chat_id,
+                text=notification.message,
+                reply_markup=notificationReadMarkup
+            )
+            notification_ref.msg_id = msg.id
+            # Отмечаем это уведомление как отправленное, но непрочитанное
+            cls.sent_not_read.append(notification_ref)
+            await cls.announce_new_pending_to_admins(notification_ref, context.bot)
+            # Добавляем уведомление в очередь, если оно повторяющееся
+            if notification.interval > 0:
+                new_notification_ref = PendingNotification(
+                    notification_ref.timestamp + notification.interval, notification.id
                 )
-                cls._pending[msg.message_id] = notification
-
-                # Обработка интервальных (повторяющихся) уведомлений
-                if notification.interval > 0:
-                    new_notification = Notification(
-                        timestamp=notification.timestamp + notification.interval,
-                        index=notification.index,
-                        chat_id=notification.chat_id,
-                        message=notification.message,
-                        interval=notification.interval
-                    )
-                    cls._queue.put((new_notification.timestamp, new_notification))
-
-                cls.save()
-            except Exception as e:
-                print(f"Не удалось отправить уведомление: {e}")
-                cls._queue.put((notification.timestamp, notification))
+                cls._queue.put(new_notification_ref)
+            flag_sent_at_least_one = True
+        # Сохраняем уведомления, если отправили хотя бы одно
+        if flag_sent_at_least_one:
+            cls.save()
 
 
-    # Уведомить администраторов о прочитанных уведомлениях
     @classmethod
-    async def notify_accepted_to_admins(cls, context: CallbackContext):
-        if not cls._accepted:
-            return
-
-        messages = []
-        current_time = time()
-
-        for notification in cls._accepted:
-            delta = current_time - notification.timestamp
-            if delta < 15 * 60:
-                continue
-
-            user = UserManager.users.get(notification.chat_id)
-            user_name = getattr(user, 'name', 'Unknown')
-            seconds = round(delta % 60)
-            minutes = delta // 60 % 60
-            hours = delta // 3600 % 24
-            days = delta // 3600 // 24
-            if days != 0:
-                delta_str = f"{days} дней и {hours} часов"
-            elif hours != 0:
-                delta_str = f"{hours} часов и {minutes} минут"
-            else:
-                delta_str = f"{minutes} минут и {seconds} секунд"
-            messages.append(f"✅Пользователь {user_name} прочитал уведомление, отправленное {delta_str} назад")
-
-        if messages:
-            for user in UserManager.users.values():
-                if getattr(user, 'isAdmin', False):
-                    await context.bot.send_message(
-                        chat_id=user.chatID,
-                        text="\n".join(messages)
-                    )
-            cls._accepted.clear()
+    async def announce_new_pending_to_admins(cls, pending: PendingNotification, bot: Bot):
+        if len(pending.admin_messages) != 0:
+            raise Exception("Анонс уже был сделан ранее, так как для этого уведомления уже определены сообщения у админов")
+        flag_sent_at_least_one = False
+        for user in UserManager.users.values():
+            if user.isAdmin:
+                admin_msg = await bot.send_message(user.chatID, f"✴️ Уведомление отправлено пользователю @{user.name}!")
+                pending.admin_messages.append((admin_msg.chat_id, admin_msg.id))
+                flag_sent_at_least_one = True
+        if flag_sent_at_least_one:
             cls.save()
 
 
     # Уведомить администраторов о непрочитанных уведомлениях
     @classmethod
     async def notify_pending_to_admins(cls, context: CallbackContext):
-        if not cls._pending:
+        if not cls.sent_not_read:
             return
 
-        messages = []
-        current_time = time()
+        # попытаться обновить каждое непрочитанное сообщение
+        for notif_ref in cls.sent_not_read:
+            delta = time() - notif_ref.timestamp
+            if delta > 1800:
 
-        for notification in cls._pending.values():
-            delta = current_time - notification.timestamp
-            if delta < 15 * 60:
-                continue
+                notification = cls._notification_by_id[notif_ref.parent_notification_id]
+                user = UserManager.users[notification.chat_id]
+                user_name = getattr(user, 'name', 'Unknown')
+                minutes = round(delta // 60 % 60)
+                hours = round(delta // 3600 % 24)
+                days = round(delta // 3600 // 24)
+                if days != 0:
+                    delta_str = f"{days} дней {hours} часов и {minutes} минут"
+                elif hours != 0:
+                    delta_str = f"{hours} часов и {minutes} минут"
+                else:
+                    delta_str = f"{minutes} минут"
 
-            user = UserManager.users.get(notification.chat_id)
-            user_name = getattr(user, 'name', 'Unknown')
-            seconds = round(delta % 60)
-            minutes = delta // 60 % 60
-            hours = delta // 3600 % 24
-            days = delta // 3600 // 24
-            if days != 0:
-                delta_str = f"{days} дней и {hours} часов"
-            elif hours != 0:
-                delta_str = f"{hours} часов и {minutes} минут"
-            else:
-                delta_str = f"{minutes} минут и {seconds} секунд"
-            messages.append(
-                f"🅾️Пользователь {user_name} не прочитал уведомление (отправлено {delta_str} назад)"
-            )
-
-        if messages:
-            for user in UserManager.users.values():
-                if getattr(user, 'isAdmin', False):
-                    await context.bot.send_message(
-                        chat_id=user.chatID,
-                        text="\n".join(messages)
-                    )
+                for admin_chat_id, admin_msg_id in notif_ref.admin_messages:
+                    await context.bot.edit_message_text(
+                        f"🅾️Пользователь {user_name} не прочитал уведомление, отправленое {delta_str} назад)",
+                        admin_chat_id, admin_msg_id)
 
 
     # Сменить статус уведомления на "прочитанное"
     @classmethod
-    def set_notification_seen(cls, message_id: int):
-        if message_id in cls._pending:
-            cls._accepted.append(cls._pending.pop(message_id))
-            cls.save()
+    async def notify_notification_seen(cls, chat_id:int, msg_id: int, bot: Bot):
+        for i in range(len(cls.sent_not_read)):
+            notif_ref = cls.sent_not_read[i]
+            notification = cls._notification_by_id[notif_ref.parent_notification_id]
+            if notif_ref.msg_id == msg_id and notification.chat_id == chat_id:
+                for admin_chat_id, admin_msg_id in notif_ref.admin_messages:
+                    delta = time() - notif_ref.timestamp
+                    user = UserManager.users.get(notification.chat_id)
+                    user_name = getattr(user, 'name', 'Unknown')
+                    minutes = round(delta // 60 % 60)
+                    hours = round(delta // 3600 % 24)
+                    days = round(delta // 3600 // 24)
+                    if days != 0:
+                        delta_str = f"{days} дней и {hours} часов и {minutes} минут"
+                    elif hours != 0:
+                        delta_str = f"{hours} часов и {minutes} минут"
+                    else:
+                        delta_str = f"{minutes} минут"
+                    await bot.edit_message_text(
+                        f"✅Пользователь {user_name} прочитал уведомление, отправленное {delta_str} назад",
+                        admin_chat_id, admin_msg_id)
+                cls.sent_not_read.pop(i)
+                break

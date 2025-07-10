@@ -26,7 +26,7 @@ class onButtonClickedHandler(CallbackQueryHandler):
 
         elif query.data == "accepted":
             await update.effective_message.edit_text("(Прочитано) " + update.effective_message.text)
-            NotificationManager.set_notification_seen(update.effective_message.id)
+            await NotificationManager.notify_notification_seen(update.effective_chat.id, update.effective_message.id, context.bot)
 
         elif query.data == "add_notification":
             await update.effective_chat.send_message("Хорошо. Что я должен буду вам сказать, чтобы напомнить вам об "
