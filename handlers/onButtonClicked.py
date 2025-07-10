@@ -32,7 +32,10 @@ class onButtonClickedHandler(CallbackQueryHandler):
         parts = query.data.split('.')
 
         if query.data == "get_users":
-            await onButtonClickedHandler.sendUserList(update.effective_chat)
+            msg = "Пользователи:"
+            for user in UserManager.users.values():
+                msg += f"\n@{user.name} [{user.chatID}]" + (" (admin)" if user.isAdmin else "")
+            await update.effective_chat.send_message(msg)
 
         elif query.data == "accepted":
             await update.effective_message.edit_text("(Прочитано) " + update.effective_message.text)
@@ -258,10 +261,3 @@ class onButtonClickedHandler(CallbackQueryHandler):
                     f"Как часто мне следует напоминать вам об этом?\n"
                     f"Раз в {interval[0]} дней {interval[1]} часов и {interval[2]} минут?",
                     reply_markup=intervalButtonsMarkup)
-
-    @staticmethod
-    async def sendUserList(chat):
-        msg = "Пользователи:"
-        for user in UserManager.users.values():
-            msg += f"\n@{user.name} [{user.chatID}]" + (" (admin)" if user.isAdmin else "")
-        await chat.send_message(msg)
