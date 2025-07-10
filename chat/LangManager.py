@@ -24,12 +24,12 @@ class LangDictionary:
                 self.replicas[name] = Replica.fromDict(json.load(f), name)
 
     def get(self, name: str):
-        return self.replicas.get(name, "[Ошибка: не удалось найти реплику]")
+        return self.replicas.get(name, None)
 
     def has(self, name: str):
         return name in self.replicas
 
-    def listWithCertainExtra(self, extra_name) -> list[Replica]:
+    def listWithCertainExtra(self, extra_name: str) -> list[Replica]:
         result = []
         for replica in self.replicas.values():
             if extra_name in replica.extra:
@@ -65,8 +65,6 @@ class LangManager:
     @classmethod
     def get(cls, name:str, lang:str):
         if lang not in cls.langs:
-            return "[Ошибка: запрошенный язык {lang} не определен]"
-        elif not cls.langs[lang].has(name):
-            return f"[Ошибка: запрошенный язык {lang} не содержит реплику {name}"
+            return None  # "[Ошибка: запрошенный язык {lang} не определен]" TODO: исправить несоответствие типов
         else:
             return cls.langs[lang].get(name)
