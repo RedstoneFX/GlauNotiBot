@@ -6,6 +6,29 @@ from chat.UserManager import UserManager
 from misc.buttons import notificationReadMarkup
 
 
+class PendingNotification:
+    def __init__(self, timestamp: float, parent_notification_id: int):
+        self.timestamp = timestamp
+        self.parent_notification_id = parent_notification_id
+        self.admin_msg_ids = []
+
+    def addAdminMsg(self, admin_msg_id):
+        self.admin_msg_ids.append(admin_msg_id)
+
+    def to_dict(self):
+        return {
+            "timestamp": self.timestamp,
+            "parent_parent_notification_id": self.parent_notification_id,
+            "admin_msg_ids": self.admin_msg_ids
+        }
+
+    @staticmethod
+    def from_dict(dict):
+        obj = PendingNotification(dict["timestamp"], dict["parent_parent_notification_id"])
+        obj.admin_msg_ids.extend(dict["admin_msg_ids"])
+        return obj
+
+
 class Notification:
     def __init__(self, timestamp: float, index: int, chat_id: int, message: str, interval: float):
         self.timestamp = timestamp
