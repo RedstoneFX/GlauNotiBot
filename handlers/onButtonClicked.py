@@ -25,7 +25,7 @@ class onButtonClickedHandler(CallbackQueryHandler):
             await onButtonClickedHandler.sendUserList(update.effective_chat)
 
         elif query.data == "accepted":
-            await update.effective_message.edit_text("(Прочитано)" + update.effective_message.text)
+            await update.effective_message.edit_text("(Прочитано) " + update.effective_message.text)
             NotificationManager.set_notification_seen(update.effective_message.id)
 
         elif query.data == "add_notification":
@@ -77,6 +77,7 @@ class onButtonClickedHandler(CallbackQueryHandler):
                 await update.effective_message.edit_text("Отлично, уведомление создано! Вызовите команду /start, "
                                                          "чтобы добавить еще уведомление.")
                 user.state = "idle"
+                user.extra.clear()
 
         elif user.state == "setting_date":
             now = user.extra["datetime"]
