@@ -51,7 +51,9 @@ class onButtonClickedHandler(CallbackQueryHandler):
         elif query.data == "list_notifications" or parts[0] == "remove_notification":
 
             if parts[0] == "remove_notification":
-                NotificationManager.remove(int(parts[1]))
+                notification_id = int(parts[1])
+                await NotificationManager.notify_notification_removed(notification_id, context.bot)
+                NotificationManager.remove(notification_id)
 
             notifications = NotificationManager.get_notifications_for_chat(update.effective_chat.id)
             if not notifications:

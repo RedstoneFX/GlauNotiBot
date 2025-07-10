@@ -251,11 +251,37 @@ class NotificationManager:
     def remove(cls, notification_id):
         if notification_id not in cls._notification_by_id:
             return
+
         cls._notification_by_id.pop(notification_id)
 
         new_queue = PriorityQueue()
         while not cls._queue.empty():
-            notif_ref: PendingNotification = cls._queue.get()
+            notif_ref = cls._queue.get()
             if notif_ref.parent_notification_id != notification_id:
                 new_queue.put(notif_ref)
         cls._queue = new_queue
+
+        new_sent_not_read = []
+        for notif_ref in cls.sent_not_read:
+            if notif_ref.parent_notification_id != notification_id:
+                new_sent_not_read.append(notif_ref)
+        cls.sent_not_read = new_sent_not_read
+
+
+
+    @classmethod
+    async def notify_notification_removed(cls, notification_id: int, bot: Bot):
+        for notif_ref in cls.sent_not_read:
+
+            if notif_ref.parent_notification_id == notification_id:
+
+                notification = cls._notification_by_id[notification_id]
+                chat_id = notification.chat_id
+                user_name = UserManager.users[chat_id].name
+                delta = time() - notif_ref.timestamp
+
+                await bot.delete_message(chat_id, notif_ref.msg_id)  # Удаляем сообщение в чате пользователя
+
+                # Оповещаем админов об удаленном уведомлении
+                for admin_chat_id, admin_msg_id in notif_ref.admin_messages:
+                    await bot.edit_message_text(f"🆙 Пользователь @{user_name} удалил уведомление спустя {convert_delta_to_str(delta)} после его отправки.\nСодержание: \"{notification.message}\"", admin_chat_id, admin_msg_id)
