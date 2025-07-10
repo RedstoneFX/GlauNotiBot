@@ -152,10 +152,10 @@ class NotificationManager:
 
             user = UserManager.users.get(notification.chat_id)
             user_name = getattr(user, 'name', 'Unknown')
-            seconds = delta % 60
+            seconds = round(delta % 60)
             minutes = delta // 60 % 60
-            hours = delta // 360 % 24
-            days = delta // 360 // 24
+            hours = delta // 3600 % 24
+            days = delta // 3600 // 24
             if days != 0:
                 delta_str = f"{days} дней и {hours} часов"
             elif hours != 0:
@@ -191,10 +191,10 @@ class NotificationManager:
 
             user = UserManager.users.get(notification.chat_id)
             user_name = getattr(user, 'name', 'Unknown')
-            seconds = delta % 60
+            seconds = round(delta % 60)
             minutes = delta // 60 % 60
-            hours = delta // 360 % 24
-            days = delta // 360 // 24
+            hours = delta // 3600 % 24
+            days = delta // 3600 // 24
             if days != 0:
                 delta_str = f"{days} дней и {hours} часов"
             elif hours != 0:
