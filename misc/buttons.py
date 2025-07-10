@@ -2,6 +2,19 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 from chat.LangManager import LangManager
 
+adminKeyboard = [
+    [InlineKeyboardButton("Добавить напоминание (отладка)", callback_data='add_notification')],
+    [InlineKeyboardButton("Список напоминаний (отладка)", callback_data='list_notifications')],
+    [InlineKeyboardButton("Получить список клиентов", callback_data='get_users')],
+    [InlineKeyboardButton("Узнать информацию", callback_data='ask_buttons')]
+    ]
+
+userKeyboard = [
+    [InlineKeyboardButton("Добавить напоминание", callback_data='add_notification')],
+    [InlineKeyboardButton("Список напоминаний", callback_data='list_notifications')],
+    [InlineKeyboardButton("Узнать информацию", callback_data='ask_buttons')]
+    ]
+
 intervalButtons = [
     [
         InlineKeyboardButton("+7 дней", callback_data="+7days"),
@@ -69,6 +82,8 @@ def getAskButtons():
             ])
     return cachedAskButtons
 
+userKeyboardMarkup = InlineKeyboardMarkup(userKeyboard)
+adminKeyboardMarkup = InlineKeyboardMarkup(adminKeyboard)
 notificationReadMarkup = InlineKeyboardMarkup(notificationRead)
 daytimeButtonsMarkup = InlineKeyboardMarkup(daytimeButtons)
 intervalButtonsMarkup = InlineKeyboardMarkup(intervalButtons)
