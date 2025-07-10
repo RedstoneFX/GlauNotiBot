@@ -197,6 +197,7 @@ class onButtonClickedHandler(CallbackQueryHandler):
                 user.extra["datetime"] = [now.year, now.month, now.day, now.hour, now.minute]
                 await update.effective_message.edit_text(f"Когда следует прислать уведомление?\n{now.date()}?",
                                                          reply_markup=generateMonthButtons(now.year, now.month))
+                user.state = "setting_date"
             elif query.data == "submit":
                 now = datetime.now()
                 user.extra["datetime"] = [now.year, now.month, now.day, now.hour, now.minute]
