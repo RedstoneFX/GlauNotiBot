@@ -6,6 +6,8 @@ from telegram import Bot
 from telegram.ext import CallbackContext
 from chat.UserManager import UserManager
 from misc.buttons import notificationReadMarkup
+from misc.convert_delta_to_str import convert_delta_to_str
+
 
 class PendingNotification:
     def __init__(self, timestamp: float, parent_notification_id: int, admin_messages=None, msg_id: int=0):
@@ -198,19 +200,10 @@ class NotificationManager:
                 notification = cls._notification_by_id[notif_ref.parent_notification_id]
                 user = UserManager.users[notification.chat_id]
                 user_name = getattr(user, 'name', 'Unknown')
-                minutes = round(delta // 60 % 60)
-                hours = round(delta // 3600 % 24)
-                days = round(delta // 3600 // 24)
-                if days != 0:
-                    delta_str = f"{days} дней {hours} часов и {minutes} минут"
-                elif hours != 0:
-                    delta_str = f"{hours} часов и {minutes} минут"
-                else:
-                    delta_str = f"{minutes} минут"
 
                 for admin_chat_id, admin_msg_id in notif_ref.admin_messages:
                     await context.bot.edit_message_text(
-                        f"🅾️Пользователь @{user_name} не прочитал уведомление, отправленное {delta_str} назад.\nСодержание: \"{notification.message}\"",
+                        f"🅾️Пользователь @{user_name} не прочитал уведомление, отправленное {convert_delta_to_str(delta)} назад.\nСодержание: \"{notification.message}\"",
                         admin_chat_id, admin_msg_id)
 
 
@@ -225,17 +218,23 @@ class NotificationManager:
                     delta = time() - notif_ref.timestamp
                     user = UserManager.users.get(notification.chat_id)
                     user_name = getattr(user, 'name', 'Unknown')
-                    minutes = round(delta // 60 % 60)
-                    hours = round(delta // 3600 % 24)
-                    days = round(delta // 3600 // 24)
-                    if days != 0:
-                        delta_str = f"{days} дней и {hours} часов и {minutes} минут"
-                    elif hours != 0:
-                        delta_str = f"{hours} часов и {minutes} минут"
-                    else:
-                        delta_str = f"{minutes} минут"
                     await bot.edit_message_text(
-                        f"✅Пользователь @{user_name} подтвердил уведомление спустя {delta_str} после его отправки.\nСодержание: \"{notification.message}\"",
+                        f"✅Пользователь @{user_name} подтвердил уведомление спустя {convert_delta_to_str(delta)} после его отправки.\nСодержание: \"{notification.message}\"",
                         admin_chat_id, admin_msg_id)
                 cls.sent_not_read.pop(i)
                 break
+
+    @classmethod
+    def get_notifications_for_chat(cls, chat_id):
+        result = []  # TODO: кеширование и хранение карты для chat_id и его уведомлений
+        for notification in cls._notification_by_id.values():
+            if notification.chat_id == chat_id:
+                result.append(notification)
+        return result
+
+    @classmethod
+    def get_next_time(cls, notification_id: int):
+        for notif_ptr in cls._queue.queue:
+            if notif_ptr.parent_notification_id == notification_id:
+                return notif_ptr.timestamp
+        return 0

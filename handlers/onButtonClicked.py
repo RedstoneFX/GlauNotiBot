@@ -13,6 +13,8 @@ from misc.generateMonthButtons import generateMonthButtons
 
 from telegram import InlineKeyboardMarkup
 
+from misc.generate_buttons_for_notifications import generate_buttons_for_notifications
+
 
 class onButtonClickedHandler(CallbackQueryHandler):
     def __init__(self):
@@ -43,6 +45,16 @@ class onButtonClickedHandler(CallbackQueryHandler):
             await update.effective_message.edit_text(answer.extra["title"] + "\n\n" + answer.body)
         elif query.data == "ask_buttons":
             await update.effective_message.edit_text("Конечно! Что именно вы хотите узнать?", reply_markup=InlineKeyboardMarkup(getAskButtons()))
+
+        elif query.data == "list_notifications":
+            notifications = NotificationManager.get_notifications_for_chat(update.effective_chat.id)
+            if not notifications:
+                await update.effective_message.edit_text("У вас еще нет ни одного прикрепленного уведомления.")
+                return
+            buttons = generate_buttons_for_notifications(notifications)
+            await update.effective_message.edit_text("Вот уведомления, закрипленные за вами:",
+                                                     reply_markup=InlineKeyboardMarkup(buttons))
+
 
         elif user.state == "setting_time":
             now = user.extra["datetime"]
