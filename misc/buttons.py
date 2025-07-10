@@ -24,7 +24,10 @@ intervalButtons = [
         InlineKeyboardButton("-30 минут", callback_data="-30mins")
     ],
     [
-        InlineKeyboardButton("Подтвердить", callback_data="submit"),
+        InlineKeyboardButton("Подтвердить", callback_data="submit")
+    ],
+    [
+        InlineKeyboardButton("Прислать только один раз", callback_data="once")
     ]
 ]
 

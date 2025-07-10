@@ -121,7 +121,13 @@ class onButtonClickedHandler(CallbackQueryHandler):
                                                          reply_markup=daytimeButtonsMarkup)
                 user.state = "setting_time"
         elif user.state == "setting_interval":
-            if query.data == "submit":
+            if query.data == "once":
+                user.extra["interval"][0] = -1
+                now = datetime.now()
+                user.extra["datetime"] = [now.year, now.month, now.day, now.hour, now.minute]
+                await update.effective_message.edit_text(f"Когда следует прислать уведомление?\n{now.date()}?",
+                                                         reply_markup=generateMonthButtons(now.year, now.month))
+            elif query.data == "submit":
                 now = datetime.now()
                 user.extra["datetime"] = [now.year, now.month, now.day, now.hour, now.minute]
                 await update.effective_message.edit_text(f"Когда следует начать присылать уведомления?\n{now.date()}?",
