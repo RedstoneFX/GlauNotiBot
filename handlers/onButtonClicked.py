@@ -4,15 +4,13 @@ from calendar import monthrange
 from telegram import Update
 from telegram.ext import ContextTypes, CallbackQueryHandler
 
+from chat.LangManager import LangManager
 from chat.NotificationManager import NotificationManager
 from chat.UserManager import UserManager
 
-from misc.buttons import intervalButtonsMarkup, daytimeButtonsMarkup, userKeyboardLearnInfo, userKeyboardLearnWhatIs, \
-    userKeyboardLearnComponents, userKeyboardLearnNoDiagnoseBut, userKeyboardLearnWhatToDo, \
-    userKeyboardLearnRegularLife, userKeyboardLearnHowToCure
+from misc.buttons import intervalButtonsMarkup, daytimeButtonsMarkup, getAskButtons
 from misc.generateMonthButtons import generateMonthButtons
 
-from misc.answers import LearnInfo, LearnWhatIs, LearnComponents, LearnNoDiagnoseBut, LearnWhatToDo, LearnHowToCure, LearnRegularLife
 from telegram import InlineKeyboardMarkup
 
 
@@ -26,8 +24,7 @@ class onButtonClickedHandler(CallbackQueryHandler):
         await query.answer()
         user = UserManager.getUser(update.effective_chat)
 
-        data = query.data
-        parts = data.split('_')
+        parts = query.data.split('.')
 
         if query.data == "get_users":
             await onButtonClickedHandler.sendUserList(update.effective_chat)
@@ -36,105 +33,16 @@ class onButtonClickedHandler(CallbackQueryHandler):
             await update.effective_message.edit_text("(Прочитано)" + update.effective_message.text)
             NotificationManager.set_notification_seen(update.effective_message.id)
 
-        elif query.data == "get_info":
-
-            user.state = "reading_info"
-
-            await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text = "Какую информацию вы хотите узнать?",
-            reply_markup=InlineKeyboardMarkup(userKeyboardLearnInfo))
-
         elif query.data == "add_notification":
             await update.effective_chat.send_message("Хорошо. Что я должен буду вам сказать, чтобы напомнить вам об "
                                                      "этом?")
             user.state = "setting_notif_msg"
 
-        elif parts[0] == 'show' and parts[1] == 'info':
-
-            if len(parts) > 2:
-                if len(parts) == 3:
-                    answer_id = int(parts[2])
-                    answer = LearnInfo[answer_id - 1]
-                    if answer_id == 1:
-                        await context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=answer,
-                        reply_markup=InlineKeyboardMarkup(userKeyboardLearnWhatIs))
-                    elif answer_id == 2:
-                        await context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=answer,
-                        reply_markup=InlineKeyboardMarkup(userKeyboardLearnComponents))
-                    elif answer_id == 3:
-                        await context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=answer)
-                    elif answer_id == 4:
-                        await context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=answer)
-                    elif answer_id == 5:
-                        await context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=answer,
-                        reply_markup=InlineKeyboardMarkup(userKeyboardLearnNoDiagnoseBut))
-                    elif answer_id == 6:
-                        await context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=answer,
-                        reply_markup=InlineKeyboardMarkup(userKeyboardLearnWhatToDo))
-                    elif answer_id == 7:
-                        await context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=answer,
-                        reply_markup=InlineKeyboardMarkup(userKeyboardLearnRegularLife))
-                    elif answer_id == 8:
-                        await context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=answer)
-
-                elif len(parts) == 4:
-                    answer_id_1 = int(parts[2])
-                    answer_id_2 = int(parts[3])
-                    if answer_id_1 == 1:
-                        answer = LearnWhatIs[answer_id_2 - 1]
-                        await context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=answer, )
-                    elif answer_id_1 == 2:
-                        answer = LearnComponents[answer_id_2 - 1]
-                        await context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=answer, )
-                    elif answer_id_1 == 5:
-                        answer = LearnNoDiagnoseBut[answer_id_2 - 1]
-                        await context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=answer, )
-                    elif answer_id_1 == 6:
-                        answer = LearnWhatToDo[answer_id_2 - 1]
-                        if answer_id_2 == 1:
-                            await context.bot.send_message(
-                            chat_id=update.effective_chat.id,
-                            text=answer,
-                            reply_markup=InlineKeyboardMarkup(userKeyboardLearnHowToCure))
-                        else:
-                            await context.bot.send_message(
-                            chat_id=update.effective_chat.id,
-                            text=answer)
-                    elif answer_id_1 == 7:
-                        answer = LearnRegularLife[answer_id_2 - 1]
-                        await context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=answer, )
-
-                elif len(parts) == 5:
-                    answer_id_3 = int(parts[4])
-                    answer = LearnHowToCure[answer_id_3 - 1]
-                    await context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=answer)
+        elif parts[0] == "ask":
+            answer = LangManager.get(parts[2], parts[1])
+            await update.effective_message.edit_text(answer.extra["title"] + "\n\n" + answer.body)
+        elif query.data == "ask_buttons":
+            await update.effective_message.edit_text("Конечно! Что именно вы хотите узнать?", reply_markup=InlineKeyboardMarkup(getAskButtons()))
 
         elif user.state == "setting_time":
             now = user.extra["datetime"]

@@ -2,3 +2,4 @@ token.txt
 /.idea
 __pycache__
 users.json
+notifs.json

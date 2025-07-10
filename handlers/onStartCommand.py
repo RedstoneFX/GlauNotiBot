@@ -7,12 +7,12 @@ adminKeyboard = [
     # [InlineKeyboardButton("Назначить уведомления", callback_data='not_avaliable')],
     [InlineKeyboardButton("Получить список всех уведомлений", callback_data='get_notifications')],
     [InlineKeyboardButton("Получить список клиентов", callback_data='get_users')],
-    [InlineKeyboardButton("Узнать информацию", callback_data='get_notifications')]
+    [InlineKeyboardButton("Узнать информацию", callback_data='ask_buttons')]
 ]
 
 userKeyboard = [
     [InlineKeyboardButton("Добавить напоминание", callback_data='add_notification')],
-    [InlineKeyboardButton("Узнать информацию", callback_data='get_info')]
+    [InlineKeyboardButton("Узнать информацию", callback_data='ask_buttons')]
 ]
 
 class onStartCommandHandler(CommandHandler):
