@@ -78,7 +78,8 @@ class onButtonClickedHandler(CallbackQueryHandler):
 
             now = datetime.now()
             if datetime(*chosen_datetime) < datetime.now():
-                # TODO: ставить текущее время
+                chosen_datetime = [now.year, now.month, now.day, now.hour, now.minute+1]
+                user.extra["datetime"] = chosen_datetime
                 time = str(chosen_datetime[3]).rjust(2, "0") + ":" + str(chosen_datetime[4]).rjust(2, "0")
                 await update.effective_message.edit_text(f"К сожалению, я не могу отправить уведомление в прошлое. Выберите другое время, пожалуйста.\n"
                                                          f"В какое время суток прислать первое уведомление?\n{time}?",
