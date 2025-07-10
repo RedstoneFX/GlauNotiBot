@@ -74,18 +74,6 @@ notificationRead = [
     [InlineKeyboardButton("Принято", callback_data="accepted")]
 ]
 
-cachedAskButtons = []
-
-def getAskButtons():
-    if not cachedAskButtons:
-        asks = LangManager.langs['ru_ru'].listWithCertainExtra("title")
-        for ask in asks:
-            cachedAskButtons.append([
-                InlineKeyboardButton(ask.extra["title"], callback_data="ask.ru_ru." + ask.name),
-            ])
-    return cachedAskButtons
-
-
 userKeyboardMarkup = InlineKeyboardMarkup(userKeyboard)
 adminKeyboardMarkup = InlineKeyboardMarkup(adminKeyboard)
 notificationReadMarkup = InlineKeyboardMarkup(notificationRead)

@@ -8,7 +8,7 @@ from chat.LangManager import LangManager
 from chat.NotificationManager import NotificationManager
 from chat.UserManager import UserManager
 
-from misc.buttons import intervalButtonsMarkup, daytimeButtonsMarkup, getAskButtons
+from misc.buttons import intervalButtonsMarkup, daytimeButtonsMarkup
 from misc.convert_delta_to_str import convert_delta_to_str
 from misc.generateMonthButtons import generateMonthButtons
 
@@ -16,6 +16,7 @@ from telegram import InlineKeyboardMarkup
 
 from misc.generate_buttons_for_notifications import generate_buttons_for_notifications, \
     generate_buttons_for_notification
+from misc.generate_question_buttons import generate_groups_buttons_markup, generate_group_buttons_markup
 
 
 class onButtonClickedHandler(CallbackQueryHandler):
@@ -42,11 +43,22 @@ class onButtonClickedHandler(CallbackQueryHandler):
                                                      "этом?")
             user.state = "setting_notif_msg"
 
-        elif parts[0] == "ask":
-            answer = LangManager.get(parts[2], parts[1])
-            await update.effective_message.edit_text(answer.extra["title"] + "\n\n" + answer.body)
+        elif parts[0] == "ask_group":
+            if parts[1] == "list_all":
+                await update.effective_message.edit_text("Либо вы не знаете, что вам нужно, либо вы проверяете меня. Как скажете, вот:",
+                                                         reply_markup=generate_group_buttons_markup("", "ru_ru", True))
+            else:
+                await update.effective_message.edit_text(
+                    "Вот вопросы из этой группы:",
+                    reply_markup=generate_group_buttons_markup(parts[2], "ru_ru"))
+
         elif query.data == "ask_buttons":
-            await update.effective_message.edit_text("Конечно! Что именно вы хотите узнать?", reply_markup=InlineKeyboardMarkup(getAskButtons()))
+            await update.effective_message.edit_text("Конечно! В какой области интересующий вас вопрос?",
+                                                     reply_markup=generate_groups_buttons_markup("ru_ru"))
+
+        elif parts[0] == "ask":
+            answer = LangManager.get(parts[1], "ru_ru")
+            await update.effective_message.edit_text(answer.extra["title"] + "\n\n" + answer.body)
 
         elif query.data == "list_notifications" or parts[0] == "remove_notification":
 
