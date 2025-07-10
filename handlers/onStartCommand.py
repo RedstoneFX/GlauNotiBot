@@ -4,8 +4,7 @@ from telegram.ext import ContextTypes, CommandHandler
 from chat.UserManager import UserManager
 
 adminKeyboard = [
-    # [InlineKeyboardButton("Назначить уведомления", callback_data='not_avaliable')],
-    [InlineKeyboardButton("Получить список всех уведомлений", callback_data='get_notifications')],
+    [InlineKeyboardButton("Добавить напоминание (отладка)", callback_data='add_notification')],
     [InlineKeyboardButton("Получить список клиентов", callback_data='get_users')],
     [InlineKeyboardButton("Узнать информацию", callback_data='get_notifications')]
 ]
