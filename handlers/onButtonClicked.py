@@ -70,11 +70,18 @@ class onButtonClickedHandler(CallbackQueryHandler):
                 now[4] = now[4] - 5
             elif query.data == "-min":
                 now[4] = now[4] - 1
-            if query.data != "submit":
-                if now[4] >= 60 or now[4] < 0:
-                    now[3] += now[4] // 60
-                    now[4] %= 60
-                now[3] %= 24
+
+            if now[4] >= 60 or now[4] < 0:
+                now[3] += now[4] // 60
+                now[4] %= 60
+            now[3] %= 24
+
+            if datetime(now.year, now.month, now.day, now.hour, now.minute) < datetime.now():
+                time = str(now[3]).rjust(2, "0") + ":" + str(now[4]).rjust(2, "0")
+                await update.effective_message.edit_text(f"К сожалению, я не могу отправить уведомление в прошлое. Выберите другое время, пожалуйста.\n"
+                                                         f"В какое время суток прислать первое уведомление?\n{time}?",
+                                                         reply_markup=daytimeButtonsMarkup)
+            elif query.data != "submit":
                 time = str(now[3]).rjust(2, "0") + ":" + str(now[4]).rjust(2, "0")
                 await update.effective_message.edit_text(f"В какое время суток прислать первое уведомление?\n{time}?",
                                                          reply_markup=daytimeButtonsMarkup)
@@ -92,14 +99,19 @@ class onButtonClickedHandler(CallbackQueryHandler):
                 user.extra.clear()
 
         elif user.state == "setting_date":
+            in_past = False
+            actual_date = datetime.now()
             now = user.extra["datetime"]
             if query.data == "month_left":
-                now[1] -= 1
-                if now[1] <= 0:
-                    now[1] = 12
-                    now[0] -= 1
-                if monthrange(now[0], now[1])[1] < now[2]:
-                    now[2] = monthrange(now[0], now[1])[1]
+                if now[0] == actual_date.year and now[1] == actual_date.month:
+                    in_past = True
+                else:
+                    now[1] -= 1
+                    if now[1] <= 0:
+                        now[1] = 12
+                        now[0] -= 1
+                    if monthrange(now[0], now[1])[1] < now[2]:
+                        now[2] = monthrange(now[0], now[1])[1]
             elif query.data == "month_right":
                 now[1] += 1
                 if now[1] > 12:
@@ -110,8 +122,17 @@ class onButtonClickedHandler(CallbackQueryHandler):
             elif query.data.isdigit():
                 n = int(query.data)
                 if 0 < n <= monthrange(now[0], now[1])[1]:
-                    now[2] = n
-            if query.data != "submit":
+                    if now[0] == actual_date.year and now[1] == actual_date.month and n < actual_date.day:
+                        in_past = True
+                    else:
+                        now[2] = n
+
+            if in_past:
+                await update.effective_message.edit_text(
+                    f"К сожалению, я не могу отправить уведомление в прошлое. Выберите другую дату, пожалуйста.\n"
+                    f"Когда следует начать присылать уведомления?\n{date(now[0], now[1], now[2])}?",
+                    reply_markup=generateMonthButtons(now[0], now[1]))
+            elif query.data != "submit":
                 await update.effective_message.edit_text(
                     f"Когда следует начать присылать уведомления?\n{date(now[0], now[1], now[2])}?",
                     reply_markup=generateMonthButtons(now[0], now[1]))
@@ -122,7 +143,7 @@ class onButtonClickedHandler(CallbackQueryHandler):
                 user.state = "setting_time"
         elif user.state == "setting_interval":
             if query.data == "once":
-                user.extra["interval"][0] = -1
+                user.extra["interval"] = [0, 0, 0]
                 now = datetime.now()
                 user.extra["datetime"] = [now.year, now.month, now.day, now.hour, now.minute]
                 await update.effective_message.edit_text(f"Когда следует прислать уведомление?\n{now.date()}?",
