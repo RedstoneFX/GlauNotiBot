@@ -162,7 +162,7 @@ class NotificationManager:
                 delta_str = f"{hours} часов и {minutes} минут"
             else:
                 delta_str = f"{minutes} минут и {seconds} секунд"
-            messages.append(f"Пользователь {user_name} прочитал уведомление {delta_str} назад")
+            messages.append(f"✅Пользователь {user_name} прочитал уведомление, отправленное {delta_str} назад")
 
         if messages:
             for user in UserManager.users.values():
@@ -202,7 +202,7 @@ class NotificationManager:
             else:
                 delta_str = f"{minutes} минут и {seconds} секунд"
             messages.append(
-                f"Пользователь {user_name} не прочитал уведомление (отправлено {delta_str} назад)"
+                f"🅾️Пользователь {user_name} не прочитал уведомление (отправлено {delta_str} назад)"
             )
 
         if messages:
