@@ -76,6 +76,7 @@ class onButtonClickedHandler(CallbackQueryHandler):
                 chosen_datetime[4] %= 60
             chosen_datetime[3] %= 24
 
+            now = datetime.now()
             if datetime(*chosen_datetime) < datetime.now():
                 # TODO: ставить текущее время
                 time = str(chosen_datetime[3]).rjust(2, "0") + ":" + str(chosen_datetime[4]).rjust(2, "0")
@@ -145,15 +146,15 @@ class onButtonClickedHandler(CallbackQueryHandler):
         elif user.state == "setting_interval":
             if query.data == "once":
                 user.extra["interval"] = [0, 0, 0]
-                chosen_datetime = datetime.now()
-                user.extra["datetime"] = [chosen_datetime.year, chosen_datetime.month, chosen_datetime.day, chosen_datetime.hour, chosen_datetime.minute]
-                await update.effective_message.edit_text(f"Когда следует прислать уведомление?\n{chosen_datetime.date()}?",
-                                                         reply_markup=generateMonthButtons(chosen_datetime.year, chosen_datetime.month))
+                now = datetime.now()
+                user.extra["datetime"] = [now.year, now.month, now.day, now.hour, now.minute]
+                await update.effective_message.edit_text(f"Когда следует прислать уведомление?\n{now.date()}?",
+                                                         reply_markup=generateMonthButtons(now.year, now.month))
             elif query.data == "submit":
-                chosen_datetime = datetime.now()
-                user.extra["datetime"] = [chosen_datetime.year, chosen_datetime.month, chosen_datetime.day, chosen_datetime.hour, chosen_datetime.minute]
-                await update.effective_message.edit_text(f"Когда следует начать присылать уведомления?\n{chosen_datetime.date()}?",
-                                                         reply_markup=generateMonthButtons(chosen_datetime.year, chosen_datetime.month))
+                now = datetime.now()
+                user.extra["datetime"] = [now.year, now.month, now.day, now.hour, now.minute]
+                await update.effective_message.edit_text(f"Когда следует начать присылать уведомления?\n{now.date()}?",
+                                                         reply_markup=generateMonthButtons(now.year, now.month))
                 user.state = "setting_date"
             else:
                 interval = user.extra["interval"]
